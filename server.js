@@ -6,6 +6,7 @@ require("dotenv").config()
 
 const app = express()
 
+app.use(cors())
 app.use(bodyParser.json({ limit: "3mb" }))
 app.use(bodyParser.urlencoded({ limit: "3mb", extended: true }))
 // app.use(
