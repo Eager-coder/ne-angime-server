@@ -7,6 +7,8 @@ router.get("/", async (req, res) => {
 	res.json({ message: "TEst has succeeded" })
 })
 router.post("/register", async (req, res) => {
+	console.log("Register request body", req.body)
+
 	const {
 		firstname,
 		lastname,
@@ -67,6 +69,7 @@ router.post("/register", async (req, res) => {
 })
 
 router.post("/login", async (req, res) => {
+	console.log("Login request body", req.body)
 	const { username, password } = req.body
 	if (!username || !password)
 		return res.status(400).json({ message: "Please fill all the fields" })
