@@ -6,70 +6,95 @@ const { sign } = require("jsonwebtoken")
 router.get("/", async (req, res) => {
 	res.json({ message: "TEst has succeeded" })
 })
+
 router.post("/register", async (req, res) => {
-	console.log("Register request body", req.body)
+	console.log("body", req.body)
+	const { stage } = req.query
+	if (!stage)
+		return res.status(400).json({ message: "Please specify the stage" })
+	if (Number(stage) === 1) {
+		const { username, firstname, lastname } = req.body
+		if (!firstname.trim() || !lastname.trim() || !username.trim())
+			return res.status(400).json({ message: "Please fill all the fields" })
+		try {
+			const { rows: users } = await pool.query(`
+				SELECT username FROM users WHERE username = '${username}'
+			`)
+			const existingUsername = users[0]?.username
 
-	const {
-		firstname,
-		lastname,
-		username,
-		email,
-		password1,
-		password2,
-	} = req.body
-	if (
-		!firstname ||
-		!lastname ||
-		!username ||
-		!email ||
-		!password1 ||
-		!password2
-	)
-		return res.status(400).json({ message: "Please fill all the fields" })
-	if (password1 !== password2)
-		return res.status(400).json({ message: "Passwords don't match" })
-	if (password1.length < 8)
-		return res
-			.status(400)
-			.json({ message: "Password must be at least 8 characters long" })
-	try {
-		const { rows: allUsernames } = await pool.query(`
-      SELECT username from users WHERE username = '${username}'
+			if (existingUsername && username === existingUsername)
+				return res
+					.status(400)
+					.json({ message: "User with this username already exists" })
+			return res.status(200).json({ message: "Stage 1 passed!" })
+		} catch (error) {
+			console.log("~REGISTER STAGE 1~", error)
+			res.status(500).json({ message: "Oops! Something went wrong!" })
+		}
+	} else if (Number(stage) === 2) {
+		const {
+			firstname,
+			lastname,
+			username,
+			email,
+			password1,
+			password2,
+		} = req.body
+		console.log(req.body)
+		if (
+			!firstname?.trim() ||
+			!lastname?.trim() ||
+			!username?.trim() ||
+			!email?.trim() ||
+			!password1?.trim() ||
+			!password2?.trim()
+		)
+			return res.status(400).json({ message: "Please fill all the fields" })
+		if (password1 !== password2)
+			return res.status(400).json({ message: "Passwords don't match" })
+		if (password1.length < 8)
+			return res
+				.status(400)
+				.json({ message: "Password must be at least 8 characters long" })
+
+		try {
+			const { rows: allUsernames } = await pool.query(`
+      SELECT username from users WHERE username = '${username}' 
     `)
-		if (allUsernames.length)
-			return res.status(400).json({ message: "Username already exists" })
+			if (allUsernames.length)
+				return res.status(400).json({ message: "Username already exists" })
 
-		const { rows: allEmails } = await pool.query(`
+			const { rows: allEmails } = await pool.query(`
       SELECT email from users WHERE email = '${email}'
     `)
-		if (allEmails.length)
-			return res.status(400).json({ message: "Email already exists" })
+			if (allEmails.length)
+				return res.status(400).json({ message: "Email already exists" })
 
-		const hashedPassword = bcrypt.hashSync(password1, 12)
-		await pool.query(`INSERT INTO users 
+			const hashedPassword = bcrypt.hashSync(password1, 12)
+			await pool.query(`INSERT INTO users 
       (username, firstname, lastname, email, password) VALUES 
       ('${username}', '${firstname}','${lastname}','${email}','${hashedPassword}')
     `)
-		const token = sign(
-			{
-				username,
-				firstname,
-				lastname,
-				email,
-			},
-			process.env.JWT_SECRET,
-			{ expiresIn: "30d" }
-		)
+			const token = sign(
+				{
+					username,
+					firstname,
+					lastname,
+					email,
+				},
+				process.env.JWT_SECRET,
+				{ expiresIn: "30d" }
+			)
 
-		res.cookie("token", token).json({ message: "Welcome to Ne Angime!" })
-	} catch (error) {
-		console.log(error)
-		res.status(500).json({ message: "Oops! Something went wrong!" })
+			res.cookie("token", token).json({ message: "Welcome to Ne Angime!" })
+		} catch (error) {
+			console.log(error)
+			res.status(500).json({ message: "Oops! Something went wrong!" })
+		}
 	}
 })
 
 router.post("/login", async (req, res) => {
-	console.log("Login request body", req.body)
 	const { username, password } = req.body
 	if (!username || !password)
 		return res.status(400).json({ message: "Please fill all the fields" })
