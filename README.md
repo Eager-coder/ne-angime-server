@@ -42,5 +42,6 @@ Required body data:
 ## Chat
 
 Endpoint : /api/chat
+
 Request type: GET
 
