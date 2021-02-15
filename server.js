@@ -18,6 +18,7 @@ app.use(bodyParser.urlencoded({ limit: "3mb", extended: true }))
 // 	})
 // )
 app.use("/api/auth", require("./routes/auth/auth"))
+app.use("/api/chat", require("./routes/chats/chat"))
 
 const port = process.env.PORT || 80
 
