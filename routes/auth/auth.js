@@ -83,7 +83,7 @@ router.post("/login", async (req, res) => {
 
 		const { password: hashedPassword, email, firstname, lastname } = rows[0]
 
-		if (!bcrypt.compare(password, hashedPassword))
+		if (!bcrypt.compareSync(password, hashedPassword))
 			return res.status(400).json({ message: "Password is incorrect" })
 
 		const token = sign(
