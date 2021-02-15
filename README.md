@@ -5,7 +5,7 @@
 Registration consists of two stages. 
 
 ### Stage 1
-
+#### Checks if a username is unique
 Endpoint : /api/auth/register?stage=1
 
 Required body data:
@@ -25,3 +25,11 @@ Required body data:
 >email
 >password1
 >password2
+
+## Login
+
+Endpoint : /api/auth/login
+
+Required body data:
+>username 
+>password
