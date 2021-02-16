@@ -1,5 +1,7 @@
 const { Router } = require("express")
+const { verify } = require("jsonwebtoken")
 const router = Router()
+const verifyToken = require("../../middlewares/verifyToken")
 const conversations = [
 	{
 		channel_id: "x7eGEWgw",
@@ -62,7 +64,7 @@ const conversations = [
 		],
 	},
 ]
-router.get("/", (req, res) => {
+router.get("/", verifyToken, (req, res) => {
 	res.json({ data: conversations })
 })
 
