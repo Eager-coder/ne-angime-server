@@ -8,6 +8,8 @@ Registration consists of two stages.
 #### Checks if a username is unique
 Endpoint : /api/auth/register?stage=1
 
+Request type: POST
+
 Required body data:
 >username
 >firstname
@@ -17,6 +19,8 @@ Required body data:
 ### Stage 2
 
 Endpoint : /api/auth/register?stage=2
+
+Request type: POST
 
 Required body data:
 >username
@@ -30,6 +34,14 @@ Required body data:
 
 Endpoint : /api/auth/login
 
+Request type: POST
 Required body data:
 >username 
 >password
+
+## Chat
+
+Endpoint : /api/chat
+
+Request type: GET
+
