@@ -116,7 +116,7 @@ router.post("/login", async (req, res) => {
 			process.env.JWT_SECRET,
 			{ expiresIn: "30d" }
 		)
-		return res.cookie(token).json({
+		return res.cookie("token", token).json({
 			message: "Welcome back!",
 			data: { username, firstname, lastname, email },
 		})
