@@ -44,7 +44,6 @@ var db_1 = require("../../config/db");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var jsonwebtoken_1 = require("jsonwebtoken");
 var generateToken_1 = require("../../helpers/generateToken");
-var auth_middlware_1 = require("../../middlewares/auth.middlware");
 var router = express_1.Router();
 router.post("/register", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var stage, _a, username, firstname, lastname, users, existingUsername, error_1, _b, firstname, lastname, username, email, password1, password2, allUsernames, allEmails, hashedPassword, user, _c, access_token, refresh_token, error_2;
@@ -173,7 +172,7 @@ router.post("/login", function (req, res) { return __awaiter(void 0, void 0, voi
         }
     });
 }); });
-router.delete("/logout", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.delete("/logout", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var refresh_token, user_id, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -184,7 +183,7 @@ router.delete("/logout", auth_middlware_1.verifyAuth, function (req, res) { retu
                 return [4 /*yield*/, db_1.pool.query("\n\t\tDELETE FROM \n\t\t\trefresh_tokens \n\t\tWHERE \n\t\t\tuser_id = $1 AND refresh_token = $2", [user_id, refresh_token])];
             case 1:
                 _a.sent();
-                res.json({ message: "You are loged out" });
+                res.json({ message: "You are logпed out" });
                 return [3 /*break*/, 3];
             case 2:
                 error_4 = _a.sent();

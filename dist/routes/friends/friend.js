@@ -67,7 +67,7 @@ router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __a
                 return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT \n\t\t\tusers.user_id as user_id, users.username, is_approved \n\t\tFROM \n\t\t\tfriends \n\t\tLEFT JOIN \n\t\t\tusers\n\t\tON addressee_id = users.user_id\n\t\tWHERE friends.requester_id = $1 \n\t\t", [user_id])];
             case 1:
                 userList = (_a.sent()).rows;
-                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT \n\t\t\tusers.user_id as user_id, users.username, is_approved \n\t\tFROM \n\t\t\tfriends \n\t\tLEFT JOIN \n\t\t\tusers\n\t\tON addressee_id = users.user_id\n\t\tWHERE friends.addressee_id = $1 \n\t\t", [user_id])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT \n\t\t\tusers.user_id as user_id, users.username, is_approved \n\t\tFROM \n\t\t\tfriends \n\t\tLEFT JOIN \n\t\t\tusers\n\t\tON requester_id = users.user_id\n\t\tWHERE friends.addressee_id = $1 AND is_approved = FALSE\n\t\t", [user_id])];
             case 2:
                 incomingRequests = (_a.sent()).rows;
                 res.json({
