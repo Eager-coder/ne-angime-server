@@ -6,6 +6,7 @@ import AuthRoute from "./routes/users/auth"
 import ChatRoute from "./routes/chats/chat"
 import UserRoute from "./routes/users/search"
 import FriendRoute from "./routes/friends/friend"
+import ProfileRoute from "./routes/users/profile"
 import { config } from "dotenv"
 config()
 const app = express()
@@ -18,6 +19,7 @@ app.use(express.json({ limit: "10mb" }))
 app.use(express.urlencoded({ limit: "10mb" }))
 
 app.use("/api/user/auth", AuthRoute)
+app.use("/api/user/profile", ProfileRoute)
 app.use("/api/chat", ChatRoute(wss))
 app.use("/api/users", UserRoute)
 app.use("/api/friends", FriendRoute)

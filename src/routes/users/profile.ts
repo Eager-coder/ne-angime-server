@@ -1,5 +1,4 @@
 import { Router } from "express"
-import { type } from "os"
 const router = Router()
 import sharp from "sharp"
 import { pool } from "../../config/db"
@@ -31,6 +30,7 @@ const uploadToCloudinary = (image: Buffer) => {
 
 router.post("/avatar", verifyAuth, async (req, res) => {
 	try {
+		console.log(req.body)
 		const base64Img = req.body.avatar.split(";base64,").pop()
 		if (!base64Img) return res.status(404).json({ message: "Please upload an image" })
 		const bufferImg = Buffer.from(base64Img, "base64")
@@ -51,7 +51,7 @@ router.post("/avatar", verifyAuth, async (req, res) => {
 		res.status(500).json({ message: "Oops! Something went wrong!" })
 	}
 })
-module.exports = router
+export default router
 
 // router.post("/avatar", upload.single("avatar"), async (req, res) => {
 // 	// console.log(req.file)
