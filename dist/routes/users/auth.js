@@ -194,7 +194,7 @@ router.delete("/logout", function (req, res) { return __awaiter(void 0, void 0, 
         }
     });
 }); });
-router.get("/refresh_token", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+router.post("/refresh_token", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var refresh_token, user, existingToken, _a, access_token, newrefresh_token, error_5;
     var _b;
     return __generator(this, function (_c) {
