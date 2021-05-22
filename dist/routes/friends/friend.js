@@ -58,4 +58,45 @@ router.post("/request/:addressee_id", auth_middlware_1.verifyAuth, function (req
         }
     });
 }); });
+router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var user_id, userList, incomingRequests;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                user_id = res.locals.user.user_id;
+                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT \n\t\t\tusers.user_id as user_id, users.username, is_approved \n\t\tFROM \n\t\t\tfriends \n\t\tLEFT JOIN \n\t\t\tusers\n\t\tON addressee_id = users.user_id\n\t\tWHERE friends.requester_id = $1 \n\t\t", [user_id])];
+            case 1:
+                userList = (_a.sent()).rows;
+                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT \n\t\t\tusers.user_id as user_id, users.username, is_approved \n\t\tFROM \n\t\t\tfriends \n\t\tLEFT JOIN \n\t\t\tusers\n\t\tON addressee_id = users.user_id\n\t\tWHERE friends.addressee_id = $1 \n\t\t", [user_id])];
+            case 2:
+                incomingRequests = (_a.sent()).rows;
+                res.json({
+                    data: {
+                        friends: userList.filter(function (user) { return user.is_approved; }),
+                        requests: userList.filter(function (user) { return !user.is_approved; }),
+                        incomingRequests: incomingRequests,
+                    },
+                });
+                return [2 /*return*/];
+        }
+    });
+}); });
+router.post("/approve/:requester_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var requester_id, user_id;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                requester_id = req.params.requester_id;
+                user_id = res.locals.user.user_id;
+                return [4 /*yield*/, db_1.pool.query("\n    UPDATE friends SET is_approved = TRUE \n\t\tWHERE requester_id = $1 AND addressee_id = $2\n  ", [requester_id, user_id])];
+            case 1:
+                _a.sent();
+                return [4 /*yield*/, db_1.pool.query("\n    INSERT INTO friends \n      (requester_id, addressee_id, is_approved) \n    VALUES\n      ($1, $2, TRUE)\n  ", [user_id, requester_id])];
+            case 2:
+                _a.sent();
+                res.json({ message: "good" });
+                return [2 /*return*/];
+        }
+    });
+}); });
 exports.default = router;

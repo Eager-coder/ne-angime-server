@@ -69,6 +69,7 @@ router.post("/avatar", auth_middlware_1.verifyAuth, function (req, res) { return
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 5, , 6]);
+                console.log(req.body);
                 base64Img = req.body.avatar.split(";base64,").pop();
                 if (!base64Img)
                     return [2 /*return*/, res.status(404).json({ message: "Please upload an image" })];
@@ -102,7 +103,7 @@ router.post("/avatar", auth_middlware_1.verifyAuth, function (req, res) { return
         }
     });
 }); });
-module.exports = router;
+exports.default = router;
 // router.post("/avatar", upload.single("avatar"), async (req, res) => {
 // 	// console.log(req.file)
 // 	console.log(req.body)
