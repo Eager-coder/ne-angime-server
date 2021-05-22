@@ -163,23 +163,31 @@ router.delete("/logout", async (req: Request, res: Response) => {
 router.post("/refresh_token", async (req: Request, res: Response) => {
 	try {
 		const { refresh_token } = req.body
-		const user: any = verify(refresh_token, process.env.REFRESH_TOKEN_SECRET!)
+		const { user_id }: any = verify(refresh_token, process.env.REFRESH_TOKEN_SECRET!)
 
 		const { rows: existingToken } = await pool.query(
 			`SELECT * FROM refresh_tokens
 		 	 WHERE user_id = $1 AND refresh_token = $2`,
-			[user.user_id, refresh_token]
+			[user_id, refresh_token]
 		)
 
 		if (existingToken[0]?.refresh_token !== refresh_token) {
 			return res.status(401).json({ message: "Unauthorized" })
 		}
-		const { access_token, refresh_token: newrefresh_token } = generateTokens(user)
+		const { rows: user } = await pool.query(
+			`SELECT username, user_id, email FROM users WHERE user_id = $1`,
+			[user_id]
+		)
+		const { access_token, refresh_token: newrefresh_token } = generateTokens({
+			user_id,
+			username: user[0].username,
+			email: user[0].email,
+		})
 
 		await pool.query(
 			`UPDATE refresh_tokens SET refresh_token = $1 
 			 WHERE user_id = $2 AND refresh_token = $3`,
-			[newrefresh_token, user.user_id, refresh_token]
+			[newrefresh_token, user_id, refresh_token]
 		)
 		console.log(user)
 		res.json({ data: { access_token, refresh_token: newrefresh_token } })

@@ -195,33 +195,40 @@ router.delete("/logout", function (req, res) { return __awaiter(void 0, void 0, 
     });
 }); });
 router.post("/refresh_token", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var refresh_token, user, existingToken, _a, access_token, newrefresh_token, error_5;
+    var refresh_token, user_id, existingToken, user, _a, access_token, newrefresh_token, error_5;
     var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
-                _c.trys.push([0, 3, , 4]);
+                _c.trys.push([0, 4, , 5]);
                 refresh_token = req.body.refresh_token;
-                user = jsonwebtoken_1.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET);
-                return [4 /*yield*/, db_1.pool.query("SELECT * FROM refresh_tokens\n\t\t \t WHERE user_id = $1 AND refresh_token = $2", [user.user_id, refresh_token])];
+                user_id = jsonwebtoken_1.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET).user_id;
+                return [4 /*yield*/, db_1.pool.query("SELECT * FROM refresh_tokens\n\t\t \t WHERE user_id = $1 AND refresh_token = $2", [user_id, refresh_token])];
             case 1:
                 existingToken = (_c.sent()).rows;
                 if (((_b = existingToken[0]) === null || _b === void 0 ? void 0 : _b.refresh_token) !== refresh_token) {
                     return [2 /*return*/, res.status(401).json({ message: "Unauthorized" })];
                 }
-                _a = generateToken_1.generateTokens(user), access_token = _a.access_token, newrefresh_token = _a.refresh_token;
-                return [4 /*yield*/, db_1.pool.query("UPDATE refresh_tokens SET refresh_token = $1 \n\t\t\t WHERE user_id = $2 AND refresh_token = $3", [newrefresh_token, user.user_id, refresh_token])];
+                return [4 /*yield*/, db_1.pool.query("SELECT username, user_id, email FROM users WHERE user_id = $1", [user_id])];
             case 2:
+                user = (_c.sent()).rows;
+                _a = generateToken_1.generateTokens({
+                    user_id: user_id,
+                    username: user[0].username,
+                    email: user[0].email,
+                }), access_token = _a.access_token, newrefresh_token = _a.refresh_token;
+                return [4 /*yield*/, db_1.pool.query("UPDATE refresh_tokens SET refresh_token = $1 \n\t\t\t WHERE user_id = $2 AND refresh_token = $3", [newrefresh_token, user_id, refresh_token])];
+            case 3:
                 _c.sent();
                 console.log(user);
                 res.json({ data: { access_token: access_token, refresh_token: newrefresh_token } });
-                return [3 /*break*/, 4];
-            case 3:
+                return [3 /*break*/, 5];
+            case 4:
                 error_5 = _c.sent();
                 console.log(error_5.message);
                 res.status(401).json({ message: "Unauthorized" });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); });
