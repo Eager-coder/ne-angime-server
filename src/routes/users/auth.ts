@@ -160,7 +160,7 @@ router.delete("/logout", async (req: Request, res: Response) => {
 	}
 })
 
-router.get("/refresh_token", async (req: Request, res: Response) => {
+router.post("/refresh_token", async (req: Request, res: Response) => {
 	try {
 		const { refresh_token } = req.body
 		const user: any = verify(refresh_token, process.env.REFRESH_TOKEN_SECRET!)
