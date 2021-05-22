@@ -179,11 +179,11 @@ router.delete("/logout", function (req, res) { return __awaiter(void 0, void 0, 
             case 0:
                 _a.trys.push([0, 2, , 3]);
                 refresh_token = req.body.refresh_token;
-                user_id = res.locals.user.user_id;
+                user_id = jsonwebtoken_1.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET).user_id;
                 return [4 /*yield*/, db_1.pool.query("\n\t\tDELETE FROM \n\t\t\trefresh_tokens \n\t\tWHERE \n\t\t\tuser_id = $1 AND refresh_token = $2", [user_id, refresh_token])];
             case 1:
                 _a.sent();
-                res.json({ message: "You are logпed out" });
+                res.json({ message: "You are logged out" });
                 return [3 /*break*/, 3];
             case 2:
                 error_4 = _a.sent();

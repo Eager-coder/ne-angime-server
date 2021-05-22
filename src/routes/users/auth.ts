@@ -141,7 +141,9 @@ router.post("/login", async (req, res) => {
 router.delete("/logout", async (req: Request, res: Response) => {
 	try {
 		const { refresh_token } = req.body
-		const { user_id } = res.locals.user
+		// const { user_id } = res.locals.user
+		// @ts-ignore
+		const { user_id } = verify(refresh_token, process.env.REFRESH_TOKEN_SECRET!)
 
 		await pool.query(
 			`
@@ -151,7 +153,7 @@ router.delete("/logout", async (req: Request, res: Response) => {
 			user_id = $1 AND refresh_token = $2`,
 			[user_id, refresh_token]
 		)
-		res.json({ message: "You are logпed out" })
+		res.json({ message: "You are logged out" })
 	} catch (error) {
 		console.log("LOGOUT", error.message)
 		res.status(500).json({ message: "Oops! Something went wrong!" })
