@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express"
 import { pool } from "../../config/db"
 import bcrypt from "bcryptjs"
-import { sign, verify } from "jsonwebtoken"
+import { verify } from "jsonwebtoken"
 import { generateTokens } from "../../helpers/generateToken"
 import { verifyAuth } from "../../middlewares/auth.middlware"
 const router = Router()
@@ -138,7 +138,7 @@ router.post("/login", async (req, res) => {
 		res.status(500).json({ message: "Oops! Something went wrong!" })
 	}
 })
-router.delete("/logout", verifyAuth, async (req: Request, res: Response) => {
+router.delete("/logout", async (req: Request, res: Response) => {
 	try {
 		const { refresh_token } = req.body
 		const { user_id } = res.locals.user
@@ -151,7 +151,7 @@ router.delete("/logout", verifyAuth, async (req: Request, res: Response) => {
 			user_id = $1 AND refresh_token = $2`,
 			[user_id, refresh_token]
 		)
-		res.json({ message: "You are loged out" })
+		res.json({ message: "You are logпed out" })
 	} catch (error) {
 		console.log("LOGOUT", error.message)
 		res.status(500).json({ message: "Oops! Something went wrong!" })

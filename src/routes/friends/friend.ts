@@ -43,8 +43,8 @@ router.get("/all", verifyAuth, async (req: Request, res: Response) => {
 			friends 
 		LEFT JOIN 
 			users
-		ON addressee_id = users.user_id
-		WHERE friends.addressee_id = $1 
+		ON requester_id = users.user_id
+		WHERE friends.addressee_id = $1 AND is_approved = FALSE
 		`,
 		[user_id]
 	)
