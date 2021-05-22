@@ -11,10 +11,10 @@ export const generateTokens = (user: User) => {
 	const { user_id, username, email } = user
 
 	const accessToken = sign({ user_id, email, username }, process.env.ACCESS_TOKEN_SECRET!, {
-		expiresIn: "15m",
+		expiresIn: "5m",
 	})
 	const refreshToken = sign({ user_id }, process.env.REFRESH_TOKEN_SECRET!, {
-		expiresIn: "30m",
+		expiresIn: "10m",
 	})
 
 	return { accessToken, refreshToken }
