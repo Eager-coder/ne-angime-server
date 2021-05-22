@@ -77,7 +77,7 @@ router.post("/register", async (req: Request, res: Response) => {
 				[username, firstname, lastname, email, hashedPassword]
 			)
 
-			const { accessToken, refreshToken } = generateTokens({
+			const { access_token, refresh_token } = generateTokens({
 				user_id: user.user_id,
 				username,
 				email,
@@ -86,7 +86,7 @@ router.post("/register", async (req: Request, res: Response) => {
 				`
 			INSERT INTO refresh_tokens (user_id, refresh_token) 
 			VALUES ($1, $2)`,
-				[user.user_id, refreshToken]
+				[user.user_id, refresh_token]
 			)
 
 			res.json({
@@ -97,8 +97,8 @@ router.post("/register", async (req: Request, res: Response) => {
 					lastname,
 					email,
 					user_id: user.user_id,
-					accessToken,
-					refreshToken,
+					access_token,
+					refresh_token,
 				},
 			})
 		} catch (error) {
@@ -122,16 +122,16 @@ router.post("/login", async (req, res) => {
 		if (!bcrypt.compareSync(password, hashedPassword))
 			return res.status(400).json({ message: "Password is incorrect" })
 
-		const { accessToken, refreshToken } = generateTokens({ user_id, username, email })
+		const { access_token, refresh_token } = generateTokens({ user_id, username, email })
 		await pool.query(
 			`
 			INSERT INTO refresh_tokens (user_id, refresh_token) 
 			VALUES ($1, $2)`,
-			[user_id, refreshToken]
+			[user_id, refresh_token]
 		)
 		return res.json({
 			message: "Welcome back!",
-			data: { username, firstname, lastname, email, avatar, user_id, accessToken, refreshToken },
+			data: { username, firstname, lastname, email, avatar, user_id, access_token, refresh_token },
 		})
 	} catch (error) {
 		console.log("LOGIN", error)
@@ -140,7 +140,7 @@ router.post("/login", async (req, res) => {
 })
 router.delete("/logout", verifyAuth, async (req: Request, res: Response) => {
 	try {
-		const { refreshToken } = req.body
+		const { refresh_token } = req.body
 		const { user_id } = res.locals.user
 
 		await pool.query(
@@ -149,7 +149,7 @@ router.delete("/logout", verifyAuth, async (req: Request, res: Response) => {
 			refresh_tokens 
 		WHERE 
 			user_id = $1 AND refresh_token = $2`,
-			[user_id, refreshToken]
+			[user_id, refresh_token]
 		)
 		res.json({ message: "You are loged out" })
 	} catch (error) {
@@ -160,27 +160,27 @@ router.delete("/logout", verifyAuth, async (req: Request, res: Response) => {
 
 router.get("/refresh_token", async (req: Request, res: Response) => {
 	try {
-		const { refreshToken } = req.body
-		const user: any = verify(refreshToken, process.env.REFRESH_TOKEN_SECRET!)
+		const { refresh_token } = req.body
+		const user: any = verify(refresh_token, process.env.REFRESH_TOKEN_SECRET!)
 
 		const { rows: existingToken } = await pool.query(
 			`SELECT * FROM refresh_tokens
 		 	 WHERE user_id = $1 AND refresh_token = $2`,
-			[user.user_id, refreshToken]
+			[user.user_id, refresh_token]
 		)
 
-		if (existingToken[0]?.refresh_token !== refreshToken) {
+		if (existingToken[0]?.refresh_token !== refresh_token) {
 			return res.status(401).json({ message: "Unauthorized" })
 		}
-		const { accessToken, refreshToken: newRefreshToken } = generateTokens(user)
+		const { access_token, refresh_token: newrefresh_token } = generateTokens(user)
 
 		await pool.query(
 			`UPDATE refresh_tokens SET refresh_token = $1 
 			 WHERE user_id = $2 AND refresh_token = $3`,
-			[newRefreshToken, user.user_id, refreshToken]
+			[newrefresh_token, user.user_id, refresh_token]
 		)
 		console.log(user)
-		res.json({ data: { accessToken, refreshToken: newRefreshToken } })
+		res.json({ data: { access_token, refresh_token: newrefresh_token } })
 	} catch (error) {
 		console.log(error.message)
 		res.status(401).json({ message: "Unauthorized" })

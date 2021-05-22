@@ -10,12 +10,12 @@ interface User {
 export const generateTokens = (user: User) => {
 	const { user_id, username, email } = user
 
-	const accessToken = sign({ user_id, email, username }, process.env.ACCESS_TOKEN_SECRET!, {
+	const access_token = sign({ user_id, email, username }, process.env.ACCESS_TOKEN_SECRET!, {
 		expiresIn: "5m",
 	})
-	const refreshToken = sign({ user_id }, process.env.REFRESH_TOKEN_SECRET!, {
+	const refresh_token = sign({ user_id }, process.env.REFRESH_TOKEN_SECRET!, {
 		expiresIn: "10m",
 	})
 
-	return { accessToken, refreshToken }
+	return { access_token, refresh_token }
 }

@@ -47,7 +47,7 @@ var generateToken_1 = require("../../helpers/generateToken");
 var auth_middlware_1 = require("../../middlewares/auth.middlware");
 var router = express_1.Router();
 router.post("/register", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var stage, _a, username, firstname, lastname, users, existingUsername, error_1, _b, firstname, lastname, username, email, password1, password2, allUsernames, allEmails, hashedPassword, user, _c, accessToken, refreshToken, error_2;
+    var stage, _a, username, firstname, lastname, users, existingUsername, error_1, _b, firstname, lastname, username, email, password1, password2, allUsernames, allEmails, hashedPassword, user, _c, access_token, refresh_token, error_2;
     var _d;
     return __generator(this, function (_e) {
         switch (_e.label) {
@@ -113,8 +113,8 @@ router.post("/register", function (req, res) { return __awaiter(void 0, void 0, 
                     user_id: user.user_id,
                     username: username,
                     email: email,
-                }), accessToken = _c.accessToken, refreshToken = _c.refreshToken;
-                return [4 /*yield*/, db_1.pool.query("\n\t\t\tINSERT INTO refresh_tokens (user_id, refresh_token) \n\t\t\tVALUES ($1, $2)", [user.user_id, refreshToken])];
+                }), access_token = _c.access_token, refresh_token = _c.refresh_token;
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tINSERT INTO refresh_tokens (user_id, refresh_token) \n\t\t\tVALUES ($1, $2)", [user.user_id, refresh_token])];
             case 10:
                 _e.sent();
                 res.json({
@@ -125,8 +125,8 @@ router.post("/register", function (req, res) { return __awaiter(void 0, void 0, 
                         lastname: lastname,
                         email: email,
                         user_id: user.user_id,
-                        accessToken: accessToken,
-                        refreshToken: refreshToken,
+                        access_token: access_token,
+                        refresh_token: refresh_token,
                     },
                 });
                 return [3 /*break*/, 12];
@@ -140,7 +140,7 @@ router.post("/register", function (req, res) { return __awaiter(void 0, void 0, 
     });
 }); });
 router.post("/login", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, username, password, rows, _b, hashedPassword, user_id, email, firstname, lastname, avatar, _c, accessToken, refreshToken, error_3;
+    var _a, username, password, rows, _b, hashedPassword, user_id, email, firstname, lastname, avatar, _c, access_token, refresh_token, error_3;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -156,13 +156,13 @@ router.post("/login", function (req, res) { return __awaiter(void 0, void 0, voi
                 _b = rows[0], hashedPassword = _b.password, user_id = _b.user_id, email = _b.email, firstname = _b.firstname, lastname = _b.lastname, avatar = _b.avatar;
                 if (!bcryptjs_1.default.compareSync(password, hashedPassword))
                     return [2 /*return*/, res.status(400).json({ message: "Password is incorrect" })];
-                _c = generateToken_1.generateTokens({ user_id: user_id, username: username, email: email }), accessToken = _c.accessToken, refreshToken = _c.refreshToken;
-                return [4 /*yield*/, db_1.pool.query("\n\t\t\tINSERT INTO refresh_tokens (user_id, refresh_token) \n\t\t\tVALUES ($1, $2)", [user_id, refreshToken])];
+                _c = generateToken_1.generateTokens({ user_id: user_id, username: username, email: email }), access_token = _c.access_token, refresh_token = _c.refresh_token;
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tINSERT INTO refresh_tokens (user_id, refresh_token) \n\t\t\tVALUES ($1, $2)", [user_id, refresh_token])];
             case 2:
                 _d.sent();
                 return [2 /*return*/, res.json({
                         message: "Welcome back!",
-                        data: { username: username, firstname: firstname, lastname: lastname, email: email, avatar: avatar, user_id: user_id, accessToken: accessToken, refreshToken: refreshToken },
+                        data: { username: username, firstname: firstname, lastname: lastname, email: email, avatar: avatar, user_id: user_id, access_token: access_token, refresh_token: refresh_token },
                     })];
             case 3:
                 error_3 = _d.sent();
@@ -174,14 +174,14 @@ router.post("/login", function (req, res) { return __awaiter(void 0, void 0, voi
     });
 }); });
 router.delete("/logout", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var refreshToken, user_id, error_4;
+    var refresh_token, user_id, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 _a.trys.push([0, 2, , 3]);
-                refreshToken = req.body.refreshToken;
+                refresh_token = req.body.refresh_token;
                 user_id = res.locals.user.user_id;
-                return [4 /*yield*/, db_1.pool.query("\n\t\tDELETE FROM \n\t\t\trefresh_tokens \n\t\tWHERE \n\t\t\tuser_id = $1 AND refresh_token = $2", [user_id, refreshToken])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\tDELETE FROM \n\t\t\trefresh_tokens \n\t\tWHERE \n\t\t\tuser_id = $1 AND refresh_token = $2", [user_id, refresh_token])];
             case 1:
                 _a.sent();
                 res.json({ message: "You are loged out" });
@@ -196,26 +196,26 @@ router.delete("/logout", auth_middlware_1.verifyAuth, function (req, res) { retu
     });
 }); });
 router.get("/refresh_token", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var refreshToken, user, existingToken, _a, accessToken, newRefreshToken, error_5;
+    var refresh_token, user, existingToken, _a, access_token, newrefresh_token, error_5;
     var _b;
     return __generator(this, function (_c) {
         switch (_c.label) {
             case 0:
                 _c.trys.push([0, 3, , 4]);
-                refreshToken = req.body.refreshToken;
-                user = jsonwebtoken_1.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-                return [4 /*yield*/, db_1.pool.query("SELECT * FROM refresh_tokens\n\t\t \t WHERE user_id = $1 AND refresh_token = $2", [user.user_id, refreshToken])];
+                refresh_token = req.body.refresh_token;
+                user = jsonwebtoken_1.verify(refresh_token, process.env.REFRESH_TOKEN_SECRET);
+                return [4 /*yield*/, db_1.pool.query("SELECT * FROM refresh_tokens\n\t\t \t WHERE user_id = $1 AND refresh_token = $2", [user.user_id, refresh_token])];
             case 1:
                 existingToken = (_c.sent()).rows;
-                if (((_b = existingToken[0]) === null || _b === void 0 ? void 0 : _b.refresh_token) !== refreshToken) {
+                if (((_b = existingToken[0]) === null || _b === void 0 ? void 0 : _b.refresh_token) !== refresh_token) {
                     return [2 /*return*/, res.status(401).json({ message: "Unauthorized" })];
                 }
-                _a = generateToken_1.generateTokens(user), accessToken = _a.accessToken, newRefreshToken = _a.refreshToken;
-                return [4 /*yield*/, db_1.pool.query("UPDATE refresh_tokens SET refresh_token = $1 \n\t\t\t WHERE user_id = $2 AND refresh_token = $3", [newRefreshToken, user.user_id, refreshToken])];
+                _a = generateToken_1.generateTokens(user), access_token = _a.access_token, newrefresh_token = _a.refresh_token;
+                return [4 /*yield*/, db_1.pool.query("UPDATE refresh_tokens SET refresh_token = $1 \n\t\t\t WHERE user_id = $2 AND refresh_token = $3", [newrefresh_token, user.user_id, refresh_token])];
             case 2:
                 _c.sent();
                 console.log(user);
-                res.json({ data: { accessToken: accessToken, refreshToken: newRefreshToken } });
+                res.json({ data: { access_token: access_token, refresh_token: newrefresh_token } });
                 return [3 /*break*/, 4];
             case 3:
                 error_5 = _c.sent();
