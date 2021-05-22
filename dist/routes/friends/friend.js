@@ -41,19 +41,25 @@ var auth_middlware_1 = require("../../middlewares/auth.middlware");
 var db_1 = require("../../config/db");
 var router = express_1.Router();
 router.post("/request/:addressee_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var addressee_id, user_id;
+    var addressee_id, user_id, existingLink;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 addressee_id = req.params.addressee_id;
                 user_id = res.locals.user.user_id;
-                if (addressee_id === user_id) {
+                if (Number(addressee_id) === Number(user_id)) {
                     return [2 /*return*/, res.status(400).json({ message: "Can't request to yourself" })];
                 }
-                return [4 /*yield*/, db_1.pool.query("\n    INSERT INTO friends \n      (requester_id, addressee_id, is_approved) \n    VALUES\n      ($1, $2, false)\n  ", [user_id, addressee_id])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT * FROM friends \n\t\tWHERE requester_id = $1 AND addressee_id = $2", [user_id, addressee_id])];
             case 1:
+                existingLink = (_a.sent()).rows;
+                if (existingLink.length) {
+                    return [2 /*return*/, res.status(400).json({ message: "Request already sent" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("\n    INSERT INTO friends \n      (requester_id, addressee_id, is_approved) \n    VALUES\n      ($1, $2, FALSE)\n  ", [user_id, addressee_id])];
+            case 2:
                 _a.sent();
-                res.json({ message: "good" });
+                res.json({ message: "Request has sent" });
                 return [2 /*return*/];
         }
     });
@@ -82,17 +88,25 @@ router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __a
     });
 }); });
 router.post("/approve/:requester_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var requester_id, user_id;
+    var requester_id, user_id, existingLink;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 requester_id = req.params.requester_id;
                 user_id = res.locals.user.user_id;
-                return [4 /*yield*/, db_1.pool.query("\n    UPDATE friends SET is_approved = TRUE \n\t\tWHERE requester_id = $1 AND addressee_id = $2\n  ", [requester_id, user_id])];
+                if (Number(requester_id) === Number(user_id)) {
+                    return [2 /*return*/, res.status(400).json({ message: "Can't request to yourself" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("\n\tSELECT * FROM friends WHERE \n\trequester_id = $1 AND addressee_id = $2\n\t", [requester_id, user_id])];
             case 1:
+                existingLink = (_a.sent()).rows;
+                if (!existingLink.length || existingLink[0].is_approved)
+                    return [2 /*return*/, res.status(400).json({ message: "Something went wrong" })];
+                return [4 /*yield*/, db_1.pool.query("\n    UPDATE friends SET is_approved = TRUE \n\t\tWHERE requester_id = $1 AND addressee_id = $2\n  ", [requester_id, user_id])];
+            case 2:
                 _a.sent();
                 return [4 /*yield*/, db_1.pool.query("\n    INSERT INTO friends \n      (requester_id, addressee_id, is_approved) \n    VALUES\n      ($1, $2, TRUE)\n  ", [user_id, requester_id])];
-            case 2:
+            case 3:
                 _a.sent();
                 res.json({ message: "good" });
                 return [2 /*return*/];

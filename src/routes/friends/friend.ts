@@ -6,20 +6,31 @@ const router = Router()
 router.post("/request/:addressee_id", verifyAuth, async (req: Request, res: Response) => {
 	const { addressee_id } = req.params
 	const user_id = res.locals.user.user_id
-	if (addressee_id === user_id) {
+	if (Number(addressee_id) === Number(user_id)) {
 		return res.status(400).json({ message: `Can't request to yourself` })
 	}
+	const { rows: existingLink } = await pool.query(
+		`
+		SELECT * FROM friends 
+		WHERE requester_id = $1 AND addressee_id = $2`,
+		[user_id, addressee_id]
+	)
+	if (existingLink.length) {
+		return res.status(400).json({ message: "Request already sent" })
+	}
+
 	await pool.query(
 		`
     INSERT INTO friends 
       (requester_id, addressee_id, is_approved) 
     VALUES
-      ($1, $2, false)
+      ($1, $2, FALSE)
   `,
 		[user_id, addressee_id]
 	)
-	res.json({ message: "good" })
+	res.json({ message: "Request has sent" })
 })
+
 router.get("/all", verifyAuth, async (req: Request, res: Response) => {
 	const { user_id } = res.locals.user
 	const { rows: userList } = await pool.query(
@@ -59,6 +70,18 @@ router.get("/all", verifyAuth, async (req: Request, res: Response) => {
 router.post("/approve/:requester_id", verifyAuth, async (req: Request, res: Response) => {
 	const { requester_id } = req.params
 	const user_id = res.locals.user.user_id
+	if (Number(requester_id) === Number(user_id)) {
+		return res.status(400).json({ message: `Can't request to yourself` })
+	}
+	const { rows: existingLink } = await pool.query(
+		`
+	SELECT * FROM friends WHERE 
+	requester_id = $1 AND addressee_id = $2
+	`,
+		[requester_id, user_id]
+	)
+	if (!existingLink.length || existingLink[0].is_approved)
+		return res.status(400).json({ message: "Something went wrong" })
 
 	await pool.query(
 		`
