@@ -5,13 +5,13 @@ import { verifyAuth } from "../../middlewares/auth.middlware"
 import qs from "querystring"
 import WebSocket, { Server } from "ws"
 import { IncomingMessage } from "http"
-interface CustomWebSocket extends WebSocket {
+export interface CustomWebSocket extends WebSocket {
 	user: {
 		username: string
 		user_id: number
 	}
 }
-interface CustomWSServer extends Server {
+export interface CustomWSServer extends Server {
 	clients: Set<CustomWebSocket>
 }
 interface Message {

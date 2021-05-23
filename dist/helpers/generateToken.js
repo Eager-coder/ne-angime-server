@@ -5,7 +5,7 @@ var jsonwebtoken_1 = require("jsonwebtoken");
 var generateTokens = function (user) {
     var user_id = user.user_id, username = user.username, email = user.email;
     var access_token = jsonwebtoken_1.sign({ user_id: user_id, email: email, username: username }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "20s",
+        expiresIn: "15m",
     });
     var refresh_token = jsonwebtoken_1.sign({ user_id: user_id }, process.env.REFRESH_TOKEN_SECRET, {
         expiresIn: "30d",

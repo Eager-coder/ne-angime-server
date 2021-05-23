@@ -12,7 +12,7 @@ config()
 const app = express()
 const server = http.createServer(app)
 require("dotenv").config()
-const wss = new WebSocket.Server({ server })
+const wss: any = new WebSocket.Server({ server })
 
 app.use(cors())
 app.use(express.json({ limit: "10mb" }))

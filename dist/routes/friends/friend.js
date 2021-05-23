@@ -41,34 +41,53 @@ var auth_middlware_1 = require("../../middlewares/auth.middlware");
 var db_1 = require("../../config/db");
 var router = express_1.Router();
 router.post("/request/:addressee_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var addressee_id, user_id, existingLink;
+    var addressee_id, user_id, existingLink, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                _a.trys.push([0, 3, , 4]);
                 addressee_id = req.params.addressee_id;
                 user_id = res.locals.user.user_id;
                 if (Number(addressee_id) === Number(user_id)) {
                     return [2 /*return*/, res.status(400).json({ message: "Can't request to yourself" })];
                 }
-                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT * FROM friends \n\t\tWHERE requester_id = $1 AND addressee_id = $2", [user_id, addressee_id])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT * FROM friends \n\t\tWHERE \n\t\t\t(requester_id = $1 AND addressee_id = $2) \n\t\tOR\n\t\t\t(requester_id = $2 AND addressee_id = $1)", [user_id, addressee_id])];
             case 1:
                 existingLink = (_a.sent()).rows;
                 if (existingLink.length) {
-                    return [2 /*return*/, res.status(400).json({ message: "Request already sent" })];
+                    if (existingLink[0].requester_id == user_id && !existingLink[0].is_approved) {
+                        return [2 /*return*/, res.status(400).json({ message: "Request already sent" })];
+                    }
+                    if (existingLink[0].requester_id == user_id && existingLink[0].is_approved) {
+                        return [2 /*return*/, res.status(400).json({ message: "You are already friends" })];
+                    }
+                    if (existingLink[0].addressee_id == user_id && !existingLink[0].is_approved) {
+                        return [2 /*return*/, res.status(400).json({ message: "The user has already sent you a request" })];
+                    }
+                    if (existingLink[0].addressee_id == user_id && existingLink[0].is_approved) {
+                        return [2 /*return*/, res.status(400).json({ message: "You are already friends" })];
+                    }
                 }
                 return [4 /*yield*/, db_1.pool.query("\n    INSERT INTO friends \n      (requester_id, addressee_id, is_approved) \n    VALUES\n      ($1, $2, FALSE)\n  ", [user_id, addressee_id])];
             case 2:
                 _a.sent();
                 res.json({ message: "Request has sent" });
-                return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 3:
+                error_1 = _a.sent();
+                console.log("ADD TO FRIENDS REQUEST", error_1.message);
+                res.status(500).json({ message: "Oops! Something went wrong." });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user_id, userList, incomingRequests;
+    var user_id, userList, incomingRequests, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                _a.trys.push([0, 3, , 4]);
                 user_id = res.locals.user.user_id;
                 return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT \n\t\t\tusers.user_id as user_id, users.username, is_approved \n\t\tFROM \n\t\t\tfriends \n\t\tLEFT JOIN \n\t\t\tusers\n\t\tON addressee_id = users.user_id\n\t\tWHERE friends.requester_id = $1 \n\t\t", [user_id])];
             case 1:
@@ -83,33 +102,67 @@ router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __a
                         incomingRequests: incomingRequests,
                     },
                 });
-                return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 3:
+                error_2 = _a.sent();
+                console.log("GET ALL FRIENDS", error_2.message);
+                res.status(500).json({ message: "Oops! Something went wrong." });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 router.post("/approve/:requester_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var requester_id, user_id, existingLink;
+    var requester_id, user_id, existingLink, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
+                _a.trys.push([0, 4, , 5]);
                 requester_id = req.params.requester_id;
                 user_id = res.locals.user.user_id;
                 if (Number(requester_id) === Number(user_id)) {
                     return [2 /*return*/, res.status(400).json({ message: "Can't request to yourself" })];
                 }
-                return [4 /*yield*/, db_1.pool.query("\n\tSELECT * FROM friends WHERE \n\trequester_id = $1 AND addressee_id = $2\n\t", [requester_id, user_id])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT * FROM friends \n\t\t\tWHERE requester_id = $1 AND addressee_id = $2\n\t\t\t", [requester_id, user_id])];
             case 1:
                 existingLink = (_a.sent()).rows;
-                if (!existingLink.length || existingLink[0].is_approved)
-                    return [2 /*return*/, res.status(400).json({ message: "Something went wrong" })];
-                return [4 /*yield*/, db_1.pool.query("\n    UPDATE friends SET is_approved = TRUE \n\t\tWHERE requester_id = $1 AND addressee_id = $2\n  ", [requester_id, user_id])];
+                if (!existingLink.length)
+                    return [2 /*return*/, res.status(400).json({ message: "No friend request was found on that user" })];
+                if (existingLink.length && existingLink[0].is_approved)
+                    return [2 /*return*/, res.status(400).json({ message: "The user is already in your friend list" })];
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tUPDATE friends SET is_approved = TRUE \n\t\t\tWHERE requester_id = $1 AND addressee_id = $2\n\t\t", [requester_id, user_id])];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, db_1.pool.query("\n    INSERT INTO friends \n      (requester_id, addressee_id, is_approved) \n    VALUES\n      ($1, $2, TRUE)\n  ", [user_id, requester_id])];
+                return [4 /*yield*/, db_1.pool.query("\n    INSERT INTO friends \n      (requester_id, addressee_id, is_approved) \n    VALUES\n      ($1, $2, TRUE)\n\t\t ON CONFLICT (requester_id, addressee_id) \n\t\t DO UPDATE SET is_approved = TRUE\n  ", [user_id, requester_id])];
             case 3:
                 _a.sent();
-                res.json({ message: "good" });
-                return [2 /*return*/];
+                res.json({ message: "You are now friends" });
+                return [3 /*break*/, 5];
+            case 4:
+                error_3 = _a.sent();
+                console.log("APPROVE FRIEND", error_3.message);
+                res.status(500).json({ message: "Oops! Something went wrong." });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); });
+router.delete("/remove/:addressee_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var addressee_id, user_id, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                addressee_id = req.params.addressee_id;
+                user_id = res.locals.user.user_id;
+                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT * FROM friends WHERE requester_id = $1 AND addressee_id = $2")];
+            case 1:
+                _a.sent();
+                return [3 /*break*/, 3];
+            case 2:
+                error_4 = _a.sent();
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); });

@@ -78,9 +78,6 @@ var routerWrapper = function (wss) {
             }
         });
     }); });
-    router.delete("/", function (req, res) { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
-        return [2 /*return*/];
-    }); }); });
     wss.on("connection", function (ws, req) {
         var _a;
         try {
@@ -132,7 +129,7 @@ var routerWrapper = function (wss) {
                     case 4: return [3 /*break*/, 6];
                     case 5:
                         error_1 = _a.sent();
-                        console.log(error_1);
+                        console.log(error_1.message);
                         return [3 /*break*/, 6];
                     case 6: return [2 /*return*/];
                 }
