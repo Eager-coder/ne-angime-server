@@ -20,22 +20,44 @@ router.get("/all", verifyAuth, async (req, res) => {
 })
 router.get("/user/:username", verifyAuth, async (req, res) => {
 	const { username } = req.params
-	console.log(username)
+	const { user_id } = res.locals.user
 	try {
 		const { rows: user } = await pool.query(
 			`
-			SELECT username, firstname, lastname, avatar
+			SELECT user_id, username, firstname, lastname, avatar
 			FROM users WHERE username = $1`,
 			[username]
 		)
-		return res.json({ user: user[0] })
+		if (!user.length) {
+			return res.status(404).json({ message: "No user found" })
+		}
+		let status: string = "no_relation"
+
+		const { rows: existingLink } = await pool.query(
+			`
+			SELECT * FROM friends 
+				WHERE (requester_id = $1 AND addressee_id = $2)
+				OR (requester_id = $2 AND addressee_id = $1)
+
+		`,
+			[user_id, user[0].user_id]
+		)
+
+		if (existingLink.length && user[0].user_id != user_id) {
+			if (existingLink[0].is_approved) {
+				status = "friend"
+			} else if (existingLink[0].requester_id == user_id) {
+				status = "outcoming_request"
+			} else if (existingLink[0].addressee_id == user_id) {
+				status = "incoming_request"
+			}
+		}
+
+		return res.json({ user: { ...user[0], status } })
 	} catch (error) {
 		console.log("USER", error)
 		res.status(500).json({ message: "Oops! Something went wrong!" })
 	}
 })
-// router.post("/", verifyToken, async (req, res) => {
-// 	const { user_id } = req.user
-// })
 
 export default router

@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -64,29 +75,44 @@ router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __a
     });
 }); });
 router.get("/user/:username", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var username, user, error_2;
+    var username, user_id, user, status_1, existingLink, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 username = req.params.username;
-                console.log(username);
+                user_id = res.locals.user.user_id;
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT username, firstname, lastname, avatar\n\t\t\tFROM users WHERE username = $1", [username])];
+                _a.trys.push([1, 4, , 5]);
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT user_id, username, firstname, lastname, avatar\n\t\t\tFROM users WHERE username = $1", [username])];
             case 2:
                 user = (_a.sent()).rows;
-                return [2 /*return*/, res.json({ user: user[0] })];
+                if (!user.length) {
+                    return [2 /*return*/, res.status(404).json({ message: "No user found" })];
+                }
+                status_1 = "no_relation";
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT * FROM friends \n\t\t\t\tWHERE (requester_id = $1 AND addressee_id = $2)\n\t\t\t\tOR (requester_id = $2 AND addressee_id = $1)\n\n\t\t", [user_id, user[0].user_id])];
             case 3:
+                existingLink = (_a.sent()).rows;
+                if (existingLink.length && user[0].user_id != user_id) {
+                    if (existingLink[0].is_approved) {
+                        status_1 = "friend";
+                    }
+                    else if (existingLink[0].requester_id == user_id) {
+                        status_1 = "outcoming_request";
+                    }
+                    else if (existingLink[0].addressee_id == user_id) {
+                        status_1 = "incoming_request";
+                    }
+                }
+                return [2 /*return*/, res.json({ user: __assign(__assign({}, user[0]), { status: status_1 }) })];
+            case 4:
                 error_2 = _a.sent();
                 console.log("USER", error_2);
                 res.status(500).json({ message: "Oops! Something went wrong!" });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
         }
     });
 }); });
-// router.post("/", verifyToken, async (req, res) => {
-// 	const { user_id } = req.user
-// })
 exports.default = router;
