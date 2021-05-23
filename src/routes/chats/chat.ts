@@ -3,9 +3,17 @@ import { pool } from "../../config/db"
 import { verify } from "jsonwebtoken"
 import { verifyAuth } from "../../middlewares/auth.middlware"
 import qs from "querystring"
-import { Server } from "ws"
+import WebSocket, { Server } from "ws"
 import { IncomingMessage } from "http"
-
+interface CustomWebSocket extends WebSocket {
+	user: {
+		username: string
+		user_id: number
+	}
+}
+interface CustomWSServer extends Server {
+	clients: Set<CustomWebSocket>
+}
 interface Message {
 	conversation_id: string
 }
@@ -22,7 +30,7 @@ function getConversations(messageList: Message[]) {
 }
 
 const router = Router()
-const routerWrapper = (wss: Server) => {
+const routerWrapper = (wss: CustomWSServer) => {
 	router.get("/", verifyAuth, async (req: Request, res: Response) => {
 		const { rows: allMessages } = await pool.query(
 			`
@@ -39,8 +47,7 @@ const routerWrapper = (wss: Server) => {
 		res.json(conversations)
 	})
 
-	router.delete("/", async (req, res) => {})
-	wss.on("connection", (ws: any, req: IncomingMessage) => {
+	wss.on("connection", (ws: CustomWebSocket, req: IncomingMessage) => {
 		try {
 			const token = qs.parse(req.url!, "/?").token?.toString()
 			if (!token) return ws.close()
@@ -77,7 +84,6 @@ const routerWrapper = (wss: Server) => {
 								JSON.stringify({
 									...data,
 									type: "receive_message",
-									// username: ws.user.username,
 								})
 							)
 						}
@@ -91,7 +97,7 @@ const routerWrapper = (wss: Server) => {
 					await pool.query(`UPDATE messages SET is_seen = TRUE WHERE message_id = $1`, [
 						data.message_id,
 					])
-					wss.clients.forEach((client: any) => {
+					wss.clients.forEach(client => {
 						if (client.user.username === data.sender_username) {
 							client.send(JSON.stringify({ ...data, type: "get_message_status_seen" }))
 							console.log("The message is seen")
@@ -99,7 +105,7 @@ const routerWrapper = (wss: Server) => {
 					})
 				}
 			} catch (error) {
-				console.log(error)
+				console.log(error.message)
 			}
 		})
 	})
