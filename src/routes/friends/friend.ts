@@ -66,7 +66,7 @@ router.get("/all", verifyAuth, async (req: Request, res: Response) => {
 		`,
 			[user_id]
 		)
-		const { rows: incomingRequests } = await pool.query(
+		const { rows: incoming_requests } = await pool.query(
 			`
 		SELECT 
 			users.user_id as user_id, users.username, is_approved 
@@ -81,9 +81,16 @@ router.get("/all", verifyAuth, async (req: Request, res: Response) => {
 		)
 		res.json({
 			data: {
-				friends: userList.filter(user => user.is_approved),
-				requests: userList.filter(user => !user.is_approved),
-				incomingRequests,
+				friends: userList
+					.filter(user => user.is_approved)
+					.map(user => ({ ...user, status: "friend" })),
+				outcoming_requests: userList
+					.filter(user => !user.is_approved)
+					.map(user => ({ ...user, status: "outcoming_request" })),
+				incoming_requests: incoming_requests.map(user => ({
+					...user,
+					status: "incoming_request",
+				})),
 			},
 		})
 	} catch (error) {
@@ -137,12 +144,73 @@ router.post("/approve/:requester_id", verifyAuth, async (req: Request, res: Resp
 		res.status(500).json({ message: "Oops! Something went wrong." })
 	}
 })
-router.delete("/remove/:addressee_id", verifyAuth, async (req: Request, res: Response) => {
+router.delete("/remove/:friend_id", verifyAuth, async (req: Request, res: Response) => {
 	try {
-		const { addressee_id } = req.params
+		const { friend_id } = req.params
 		const user_id = res.locals.user.user_id
-		await pool.query(`
-		SELECT * FROM friends WHERE requester_id = $1 AND addressee_id = $2`)
-	} catch (error) {}
+		if (user_id == friend_id) {
+			return res.status(400).json({ message: "Can't delete yourself from user list" })
+		}
+		const { rows: existingLink } = await pool.query(
+			`
+		SELECT * FROM friends 
+		WHERE requester_id = $1 AND addressee_id = $2 AND is_approved = TRUE`,
+			[user_id, friend_id]
+		)
+		if (!existingLink.length) {
+			return res.status(400).json({ message: "The user is not in your friend list" })
+		}
+		await pool.query(
+			`
+			UPDATE friends SET is_approved = FALSE 
+			WHERE requester_id = $1 AND addressee_id = $2`,
+			[friend_id, user_id]
+		)
+		await pool.query(
+			`
+			DELETE FROM friends 
+			WHERE requester_id = $1 AND addressee_id = $2`,
+			[user_id, friend_id]
+		)
+		res.json({ message: "User removed from friend list" })
+	} catch (error) {
+		console.log("DELETE FRIEND", error.message)
+		res.status(500).json({ message: "Oops! Something went wrong." })
+	}
+})
+
+router.delete("/cancel_request/:addressee_id", verifyAuth, async (req: Request, res: Response) => {
+	try {
+		const { user_id } = res.locals.user
+		const { addressee_id } = req.params
+
+		const { rows: existingLink } = await pool.query(
+			`
+	SELECT * FROM friends 
+	WHERE requester_id = $1 AND addressee_id = $2 
+	AND is_approved = FALSE`,
+			[user_id, addressee_id]
+		)
+		if (!existingLink.length) {
+			return res.status(400).json({ message: "You haven't send request to the user" })
+		}
+		await pool.query(
+			`
+	DELETE from friends WHERE 
+	requester_id = $1 AND addressee_id = $2 
+	AND is_approved = FALSE`,
+			[user_id, addressee_id]
+		)
+		res.json({ message: "Request has calceled" })
+	} catch (error) {
+		console.log("CANCEL REQUEST", error.message)
+		res.status(500).json({ message: "Oops! Something went wrong." })
+	}
 })
 export default router
+
+// STATUESES
+
+// friend
+// incoming_request
+// outcoming_request

@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -83,7 +94,7 @@ router.post("/request/:addressee_id", auth_middlware_1.verifyAuth, function (req
     });
 }); });
 router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user_id, userList, incomingRequests, error_2;
+    var user_id, userList, incoming_requests, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -94,12 +105,16 @@ router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __a
                 userList = (_a.sent()).rows;
                 return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT \n\t\t\tusers.user_id as user_id, users.username, is_approved \n\t\tFROM \n\t\t\tfriends \n\t\tLEFT JOIN \n\t\t\tusers\n\t\tON requester_id = users.user_id\n\t\tWHERE friends.addressee_id = $1 AND is_approved = FALSE\n\t\t", [user_id])];
             case 2:
-                incomingRequests = (_a.sent()).rows;
+                incoming_requests = (_a.sent()).rows;
                 res.json({
                     data: {
-                        friends: userList.filter(function (user) { return user.is_approved; }),
-                        requests: userList.filter(function (user) { return !user.is_approved; }),
-                        incomingRequests: incomingRequests,
+                        friends: userList
+                            .filter(function (user) { return user.is_approved; })
+                            .map(function (user) { return (__assign(__assign({}, user), { status: "friend" })); }),
+                        outcoming_requests: userList
+                            .filter(function (user) { return !user.is_approved; })
+                            .map(function (user) { return (__assign(__assign({}, user), { status: "outcoming_request" })); }),
+                        incoming_requests: incoming_requests.map(function (user) { return (__assign(__assign({}, user), { status: "incoming_request" })); }),
                     },
                 });
                 return [3 /*break*/, 4];
@@ -147,23 +162,70 @@ router.post("/approve/:requester_id", auth_middlware_1.verifyAuth, function (req
         }
     });
 }); });
-router.delete("/remove/:addressee_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var addressee_id, user_id, error_4;
+router.delete("/remove/:friend_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var friend_id, user_id, existingLink, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                addressee_id = req.params.addressee_id;
+                _a.trys.push([0, 4, , 5]);
+                friend_id = req.params.friend_id;
                 user_id = res.locals.user.user_id;
-                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT * FROM friends WHERE requester_id = $1 AND addressee_id = $2")];
+                if (user_id == friend_id) {
+                    return [2 /*return*/, res.status(400).json({ message: "Can't delete yourself from user list" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("\n\t\tSELECT * FROM friends \n\t\tWHERE requester_id = $1 AND addressee_id = $2 AND is_approved = TRUE", [user_id, friend_id])];
             case 1:
-                _a.sent();
-                return [3 /*break*/, 3];
+                existingLink = (_a.sent()).rows;
+                if (!existingLink.length) {
+                    return [2 /*return*/, res.status(400).json({ message: "The user is not in your friend list" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tUPDATE friends SET is_approved = FALSE \n\t\t\tWHERE requester_id = $1 AND addressee_id = $2", [friend_id, user_id])];
             case 2:
+                _a.sent();
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tDELETE FROM friends \n\t\t\tWHERE requester_id = $1 AND addressee_id = $2", [user_id, friend_id])];
+            case 3:
+                _a.sent();
+                res.json({ message: "User removed from friend list" });
+                return [3 /*break*/, 5];
+            case 4:
                 error_4 = _a.sent();
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                console.log("DELETE FRIEND", error_4.message);
+                res.status(500).json({ message: "Oops! Something went wrong." });
+                return [3 /*break*/, 5];
+            case 5: return [2 /*return*/];
+        }
+    });
+}); });
+router.delete("/cancel_request/:addressee_id", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var user_id, addressee_id, existingLink, error_5;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                user_id = res.locals.user.user_id;
+                addressee_id = req.params.addressee_id;
+                return [4 /*yield*/, db_1.pool.query("\n\tSELECT * FROM friends \n\tWHERE requester_id = $1 AND addressee_id = $2 \n\tAND is_approved = FALSE", [user_id, addressee_id])];
+            case 1:
+                existingLink = (_a.sent()).rows;
+                if (!existingLink.length) {
+                    return [2 /*return*/, res.status(400).json({ message: "You haven't send request to the user" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("\n\tDELETE from friends WHERE \n\trequester_id = $1 AND addressee_id = $2 \n\tAND is_approved = FALSE", [user_id, addressee_id])];
+            case 2:
+                _a.sent();
+                res.json({ message: "Request has calceled" });
+                return [3 /*break*/, 4];
+            case 3:
+                error_5 = _a.sent();
+                console.log("CANCEL REQUEST", error_5.message);
+                res.status(500).json({ message: "Oops! Something went wrong." });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
 exports.default = router;
+// STATUESES
+// friend
+// incoming_request
+// outcoming_request
