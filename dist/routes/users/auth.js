@@ -44,6 +44,7 @@ var db_1 = require("../../config/db");
 var bcryptjs_1 = __importDefault(require("bcryptjs"));
 var jsonwebtoken_1 = require("jsonwebtoken");
 var generateToken_1 = require("../../helpers/generateToken");
+var auth_middlware_1 = require("../../middlewares/auth.middlware");
 var router = express_1.Router();
 router.post("/register", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var stage, _a, username, firstname, lastname, users, existingUsername, error_1, _b, firstname, lastname, username, email, password1, password2, allUsernames, allEmails, hashedPassword, user, _c, access_token, refresh_token, error_2;
@@ -229,6 +230,32 @@ router.post("/refresh_token", function (req, res) { return __awaiter(void 0, voi
                 res.status(401).json({ message: "Unauthorized" });
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
+        }
+    });
+}); });
+router.put("/change_password", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var password, user_id, hashedPassword, error_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                password = req.body.password || "";
+                user_id = res.locals.user.user_id;
+                if ((password === null || password === void 0 ? void 0 : password.trim().length) < 8) {
+                    return [2 /*return*/, res.status(400).json({ message: "Password needs to be at least 8 characters long" })];
+                }
+                hashedPassword = bcryptjs_1.default.hashSync(password, 12);
+                return [4 /*yield*/, db_1.pool.query("UPDATE users SET passwor = $1 WHERE user_id = $2", [hashedPassword, user_id])];
+            case 1:
+                _a.sent();
+                res.json({ message: "Password has been changed" });
+                return [3 /*break*/, 3];
+            case 2:
+                error_6 = _a.sent();
+                console.log("UPDATE PASSWORD", error_6.message);
+                res.status(500).json({ message: "Oops! Something went wrong" });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); });

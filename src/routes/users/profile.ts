@@ -1,4 +1,4 @@
-import { Router } from "express"
+import { Router, Request, Response, query } from "express"
 const router = Router()
 import sharp from "sharp"
 import { pool } from "../../config/db"
@@ -53,24 +53,57 @@ router.post("/avatar", verifyAuth, async (req, res) => {
 })
 export default router
 
-// router.post("/avatar", upload.single("avatar"), async (req, res) => {
-// 	// console.log(req.file)
-// 	console.log(req.body)
-// 	const reqImage = req?.file?.buffer
-// 	if (!reqImage)
-// 		return res.status(404).json({ message: "No image was uploaded." })
-// 	const formattedImg = await sharp(reqImage)
-// 		.jpeg({ quality: 50, chromaSubsampling: "4:4:4", force: true })
-// 		.resize(250, 250)
-// 		.toBuffer()
+router.put("/username", verifyAuth, async (req: Request, res: Response) => {
+	try {
+		const { new_username } = req.body
+		const { user_id } = res.locals.user
+		const { rows: existing } = await pool.query(
+			`
+			SELECT user_id FROM users 
+			WHERE username = $1 LIMIT 1`,
+			[new_username]
+		)
+		if (existing.length) {
+			return res.status(400).json({ message: "Username is not available" })
+		}
+		await pool.query(`UPDATE users SET username = $1 WHERE user_id = $2`, [new_username, user_id])
+		res.json({ message: "Username has been changed" })
+	} catch (error) {
+		console.log("UPDATE USERNAME", error.message)
+		res.status(500).json({ message: "Oops! Something went wrong!" })
+	}
+})
+router.put("/email", verifyAuth, async (req: Request, res: Response) => {
+	try {
+		const { new_email } = req.body
+		const { user_id } = res.locals.user
+		const { rows: existing } = await pool.query(
+			`
+			SELECT user_id FROM users WHERE email = $1 LIMIT 1`,
+			[new_email]
+		)
+		if (existing.length) {
+			return res.status(400).json({ message: "Email is not available" })
+		}
+		await pool.query(`UPDATE users SET email = $1 WHERE user_id = $2`, [new_email, user_id])
+		res.json({ message: "Username has been changed" })
+	} catch (error) {
+		console.log("UPDATE EMAIl", error.message)
+		res.status(500).json({ message: "Oops! Something went wrong!" })
+	}
+})
 
-// 	try {
-// 		const result = await uploadToCloudinary(formattedImg)
-
-// 		res.json({ message: "Image successfully uploaded", url: result.url })
-// 		console.log(result)
-// 	} catch (error) {
-// 		console.log(error)
-// 		res.status(500).json({ message: "Oops! Something went wrong!" })
-// 	}
-// })
+router.put("/about", verifyAuth, async (req: Request, res: Response) => {
+	try {
+		const { user_id } = res.locals.user
+		const new_about: string = req.body.new_about
+		if (!new_about.trim().length) {
+			return res.status(400).json({ message: "Your about is empty" })
+		}
+		await pool.query(`UPDATE users SET about = $1 WHERE user_id = $2`, [new_about, user_id])
+		res.json({ message: "Your about is updated" })
+	} catch (error) {
+		console.log("UPDATE ABOUT", error.message)
+		res.status(500).json({ message: "Oops! Something went wrong!" })
+	}
+})

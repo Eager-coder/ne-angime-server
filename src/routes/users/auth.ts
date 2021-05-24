@@ -197,4 +197,21 @@ router.post("/refresh_token", async (req: Request, res: Response) => {
 	}
 })
 
+router.put("/change_password", verifyAuth, async (req: Request, res: Response) => {
+	try {
+		const password: string = req.body.password || ""
+		const { user_id } = res.locals.user
+		if (password?.trim().length < 8) {
+			return res.status(400).json({ message: "Password needs to be at least 8 characters long" })
+		}
+		const hashedPassword = bcrypt.hashSync(password, 12)
+
+		await pool.query(`UPDATE users SET passwor = $1 WHERE user_id = $2`, [hashedPassword, user_id])
+		res.json({ message: "Password has been changed" })
+	} catch (error) {
+		console.log("UPDATE PASSWORD", error.message)
+		res.status(500).json({ message: "Oops! Something went wrong" })
+	}
+})
+
 export default router

@@ -69,7 +69,8 @@ router.get("/all", verifyAuth, async (req: Request, res: Response) => {
 		const { rows: incoming_requests } = await pool.query(
 			`
 		SELECT 
-			users.user_id as user_id, users.username, users.username, firstname, lastname, avatar, is_approved 
+			users.user_id as user_id, users.username, 
+			users.username, firstname, lastname, avatar, is_approved 
 		FROM 
 			friends 
 		LEFT JOIN 

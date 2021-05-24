@@ -104,22 +104,84 @@ router.post("/avatar", auth_middlware_1.verifyAuth, function (req, res) { return
     });
 }); });
 exports.default = router;
-// router.post("/avatar", upload.single("avatar"), async (req, res) => {
-// 	// console.log(req.file)
-// 	console.log(req.body)
-// 	const reqImage = req?.file?.buffer
-// 	if (!reqImage)
-// 		return res.status(404).json({ message: "No image was uploaded." })
-// 	const formattedImg = await sharp(reqImage)
-// 		.jpeg({ quality: 50, chromaSubsampling: "4:4:4", force: true })
-// 		.resize(250, 250)
-// 		.toBuffer()
-// 	try {
-// 		const result = await uploadToCloudinary(formattedImg)
-// 		res.json({ message: "Image successfully uploaded", url: result.url })
-// 		console.log(result)
-// 	} catch (error) {
-// 		console.log(error)
-// 		res.status(500).json({ message: "Oops! Something went wrong!" })
-// 	}
-// })
+router.put("/username", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var new_username, user_id, existing, error_2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                new_username = req.body.new_username;
+                user_id = res.locals.user.user_id;
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT user_id FROM users \n\t\t\tWHERE username = $1 LIMIT 1", [new_username])];
+            case 1:
+                existing = (_a.sent()).rows;
+                if (existing.length) {
+                    return [2 /*return*/, res.status(400).json({ message: "Username is not available" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("UPDATE users SET username = $1 WHERE user_id = $2", [new_username, user_id])];
+            case 2:
+                _a.sent();
+                res.json({ message: "Username has been changed" });
+                return [3 /*break*/, 4];
+            case 3:
+                error_2 = _a.sent();
+                console.log("UPDATE USERNAME", error_2.message);
+                res.status(500).json({ message: "Oops! Something went wrong!" });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.put("/email", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var new_email, user_id, existing, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 3, , 4]);
+                new_email = req.body.new_email;
+                user_id = res.locals.user.user_id;
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT user_id FROM users WHERE email = $1 LIMIT 1", [new_email])];
+            case 1:
+                existing = (_a.sent()).rows;
+                if (existing.length) {
+                    return [2 /*return*/, res.status(400).json({ message: "Email is not available" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("UPDATE users SET email = $1 WHERE user_id = $2", [new_email, user_id])];
+            case 2:
+                _a.sent();
+                res.json({ message: "Username has been changed" });
+                return [3 /*break*/, 4];
+            case 3:
+                error_3 = _a.sent();
+                console.log("UPDATE EMAIl", error_3.message);
+                res.status(500).json({ message: "Oops! Something went wrong!" });
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+router.put("/about", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var user_id, new_about, error_4;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                user_id = res.locals.user.user_id;
+                new_about = req.body.new_about;
+                if (!new_about.trim().length) {
+                    return [2 /*return*/, res.status(400).json({ message: "Your about is empty" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("UPDATE users SET about = $1 WHERE user_id = $2", [new_about, user_id])];
+            case 1:
+                _a.sent();
+                res.json({ message: "Your about is updated" });
+                return [3 /*break*/, 3];
+            case 2:
+                error_4 = _a.sent();
+                console.log("UPDATE ABOUT", error_4.message);
+                res.status(500).json({ message: "Oops! Something went wrong!" });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); });
