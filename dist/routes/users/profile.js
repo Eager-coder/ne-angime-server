@@ -112,6 +112,9 @@ router.put("/username", auth_middlware_1.verifyAuth, function (req, res) { retur
                 _a.trys.push([0, 3, , 4]);
                 new_username = req.body.new_username;
                 user_id = res.locals.user.user_id;
+                if (!(new_username === null || new_username === void 0 ? void 0 : new_username.trim().length)) {
+                    return [2 /*return*/, res.status(400).json({ message: "Username cannot be blank" })];
+                }
                 return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT user_id FROM users \n\t\t\tWHERE username = $1 LIMIT 1", [new_username])];
             case 1:
                 existing = (_a.sent()).rows;
@@ -140,6 +143,9 @@ router.put("/email", auth_middlware_1.verifyAuth, function (req, res) { return _
                 _a.trys.push([0, 3, , 4]);
                 new_email = req.body.new_email;
                 user_id = res.locals.user.user_id;
+                if (!(new_email === null || new_email === void 0 ? void 0 : new_email.trim().length)) {
+                    return [2 /*return*/, res.status(400).json({ message: "Email cannot be blank" })];
+                }
                 return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT user_id FROM users WHERE email = $1 LIMIT 1", [new_email])];
             case 1:
                 existing = (_a.sent()).rows;
@@ -149,7 +155,7 @@ router.put("/email", auth_middlware_1.verifyAuth, function (req, res) { return _
                 return [4 /*yield*/, db_1.pool.query("UPDATE users SET email = $1 WHERE user_id = $2", [new_email, user_id])];
             case 2:
                 _a.sent();
-                res.json({ message: "Username has been changed" });
+                res.json({ message: "Email has been changed" });
                 return [3 /*break*/, 4];
             case 3:
                 error_3 = _a.sent();

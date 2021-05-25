@@ -57,6 +57,9 @@ router.put("/username", verifyAuth, async (req: Request, res: Response) => {
 	try {
 		const { new_username } = req.body
 		const { user_id } = res.locals.user
+		if (!new_username?.trim().length) {
+			return res.status(400).json({ message: "Username cannot be blank" })
+		}
 		const { rows: existing } = await pool.query(
 			`
 			SELECT user_id FROM users 
@@ -77,6 +80,9 @@ router.put("/email", verifyAuth, async (req: Request, res: Response) => {
 	try {
 		const { new_email } = req.body
 		const { user_id } = res.locals.user
+		if (!new_email?.trim().length) {
+			return res.status(400).json({ message: "Email cannot be blank" })
+		}
 		const { rows: existing } = await pool.query(
 			`
 			SELECT user_id FROM users WHERE email = $1 LIMIT 1`,
@@ -86,7 +92,7 @@ router.put("/email", verifyAuth, async (req: Request, res: Response) => {
 			return res.status(400).json({ message: "Email is not available" })
 		}
 		await pool.query(`UPDATE users SET email = $1 WHERE user_id = $2`, [new_email, user_id])
-		res.json({ message: "Username has been changed" })
+		res.json({ message: "Email has been changed" })
 	} catch (error) {
 		console.log("UPDATE EMAIl", error.message)
 		res.status(500).json({ message: "Oops! Something went wrong!" })

@@ -117,7 +117,7 @@ router.post("/login", async (req, res) => {
 
 		if (!rows.length) return res.status(400).json({ message: "User does not exist" })
 
-		const { password: hashedPassword, user_id, email, firstname, lastname, avatar } = rows[0]
+		const { password: hashedPassword, user_id, email, firstname, lastname, avatar, about } = rows[0]
 
 		if (!bcrypt.compareSync(password, hashedPassword))
 			return res.status(400).json({ message: "Password is incorrect" })
@@ -131,7 +131,17 @@ router.post("/login", async (req, res) => {
 		)
 		return res.json({
 			message: "Welcome back!",
-			data: { username, firstname, lastname, email, avatar, user_id, access_token, refresh_token },
+			data: {
+				username,
+				firstname,
+				lastname,
+				email,
+				avatar,
+				user_id,
+				access_token,
+				refresh_token,
+				about,
+			},
 		})
 	} catch (error) {
 		console.log("LOGIN", error)

@@ -63,7 +63,7 @@ router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __a
                 return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT username, firstname, lastname, avatar \n\t\t\tFROM users WHERE NOT username = $1", [username])];
             case 2:
                 users = (_a.sent()).rows;
-                res.json({ users: users });
+                res.json({ data: users });
                 return [3 /*break*/, 4];
             case 3:
                 error_1 = _a.sent();
@@ -105,7 +105,7 @@ router.get("/user/:username", auth_middlware_1.verifyAuth, function (req, res) {
                         status_1 = "incoming_request";
                     }
                 }
-                return [2 /*return*/, res.json({ user: __assign(__assign({}, user[0]), { status: status_1 }) })];
+                return [2 /*return*/, res.json({ data: __assign(__assign({}, user[0]), { status: status_1 }) })];
             case 4:
                 error_2 = _a.sent();
                 console.log("USER", error_2);

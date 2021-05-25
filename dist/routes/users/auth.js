@@ -140,7 +140,7 @@ router.post("/register", function (req, res) { return __awaiter(void 0, void 0, 
     });
 }); });
 router.post("/login", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, username, password, rows, _b, hashedPassword, user_id, email, firstname, lastname, avatar, _c, access_token, refresh_token, error_3;
+    var _a, username, password, rows, _b, hashedPassword, user_id, email, firstname, lastname, avatar, about, _c, access_token, refresh_token, error_3;
     return __generator(this, function (_d) {
         switch (_d.label) {
             case 0:
@@ -153,7 +153,7 @@ router.post("/login", function (req, res) { return __awaiter(void 0, void 0, voi
                 rows = (_d.sent()).rows;
                 if (!rows.length)
                     return [2 /*return*/, res.status(400).json({ message: "User does not exist" })];
-                _b = rows[0], hashedPassword = _b.password, user_id = _b.user_id, email = _b.email, firstname = _b.firstname, lastname = _b.lastname, avatar = _b.avatar;
+                _b = rows[0], hashedPassword = _b.password, user_id = _b.user_id, email = _b.email, firstname = _b.firstname, lastname = _b.lastname, avatar = _b.avatar, about = _b.about;
                 if (!bcryptjs_1.default.compareSync(password, hashedPassword))
                     return [2 /*return*/, res.status(400).json({ message: "Password is incorrect" })];
                 _c = generateToken_1.generateTokens({ user_id: user_id, username: username, email: email }), access_token = _c.access_token, refresh_token = _c.refresh_token;
@@ -162,7 +162,17 @@ router.post("/login", function (req, res) { return __awaiter(void 0, void 0, voi
                 _d.sent();
                 return [2 /*return*/, res.json({
                         message: "Welcome back!",
-                        data: { username: username, firstname: firstname, lastname: lastname, email: email, avatar: avatar, user_id: user_id, access_token: access_token, refresh_token: refresh_token },
+                        data: {
+                            username: username,
+                            firstname: firstname,
+                            lastname: lastname,
+                            email: email,
+                            avatar: avatar,
+                            user_id: user_id,
+                            access_token: access_token,
+                            refresh_token: refresh_token,
+                            about: about,
+                        },
                     })];
             case 3:
                 error_3 = _d.sent();

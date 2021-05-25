@@ -12,7 +12,7 @@ router.get("/all", verifyAuth, async (req, res) => {
 			FROM users WHERE NOT username = $1`,
 			[username]
 		)
-		res.json({ users })
+		res.json({ data: users })
 	} catch (error) {
 		console.log("USERS", error)
 		res.status(500).json({ message: "Oops! Something went wrong!" })
@@ -53,7 +53,7 @@ router.get("/user/:username", verifyAuth, async (req, res) => {
 			}
 		}
 
-		return res.json({ user: { ...user[0], status } })
+		return res.json({ data: { ...user[0], status } })
 	} catch (error) {
 		console.log("USER", error)
 		res.status(500).json({ message: "Oops! Something went wrong!" })
