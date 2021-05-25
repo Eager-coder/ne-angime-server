@@ -104,39 +104,81 @@ router.post("/avatar", auth_middlware_1.verifyAuth, function (req, res) { return
     });
 }); });
 exports.default = router;
-router.put("/username", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var new_username, user_id, existing, error_2;
+// router.put("/username", verifyAuth, async (req: Request, res: Response) => {
+// 	try {
+// 		const { new_username } = req.body
+// 		const { user_id } = res.locals.user
+// 		if (!new_username?.trim().length) {
+// 			return res.status(400).json({ message: "Username cannot be blank" })
+// 		}
+// 		const { rows: existing } = await pool.query(
+// 			`
+// 			SELECT user_id FROM users
+// 			WHERE username = $1 LIMIT 1`,
+// 			[new_username]
+// 		)
+// 		if (existing.length) {
+// 			return res.status(400).json({ message: "Username is not available" })
+// 		}
+// 		await pool.query(`UPDATE users SET username = $1 WHERE user_id = $2`, [new_username, user_id])
+// 		res.json({ message: "Username has been changed" })
+// 	} catch (error) {
+// 		console.log("UPDATE USERNAME", error.message)
+// 		res.status(500).json({ message: "Oops! Something went wrong!" })
+// 	}
+// })
+router.put("/firstname", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var user_id, firstname, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 3, , 4]);
-                new_username = req.body.new_username;
+                _a.trys.push([0, 2, , 3]);
                 user_id = res.locals.user.user_id;
-                if (!(new_username === null || new_username === void 0 ? void 0 : new_username.trim().length)) {
-                    return [2 /*return*/, res.status(400).json({ message: "Username cannot be blank" })];
+                firstname = req.body.firstname;
+                if (!(firstname === null || firstname === void 0 ? void 0 : firstname.trim().length)) {
+                    return [2 /*return*/, res.json({ message: "Firstname cannot be blank" })];
                 }
-                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT user_id FROM users \n\t\t\tWHERE username = $1 LIMIT 1", [new_username])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tUPDATE users SET firstname = $1 \n\t\t\tWHERE user_id = $2", [firstname, user_id])];
             case 1:
-                existing = (_a.sent()).rows;
-                if (existing.length) {
-                    return [2 /*return*/, res.status(400).json({ message: "Username is not available" })];
-                }
-                return [4 /*yield*/, db_1.pool.query("UPDATE users SET username = $1 WHERE user_id = $2", [new_username, user_id])];
-            case 2:
                 _a.sent();
-                res.json({ message: "Username has been changed" });
-                return [3 /*break*/, 4];
-            case 3:
+                res.json({ message: "Firstname has been changed" });
+                return [3 /*break*/, 3];
+            case 2:
                 error_2 = _a.sent();
-                console.log("UPDATE USERNAME", error_2.message);
+                console.log("UPDATE FIRSTNAME", error_2.message);
                 res.status(500).json({ message: "Oops! Something went wrong!" });
-                return [3 /*break*/, 4];
-            case 4: return [2 /*return*/];
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
+        }
+    });
+}); });
+router.put("/lastname", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var user_id, lastname, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                user_id = res.locals.user.user_id;
+                lastname = req.body.lastname;
+                if (!(lastname === null || lastname === void 0 ? void 0 : lastname.trim().length)) {
+                    return [2 /*return*/, res.json({ message: "Lastname cannot be blank" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tUPDATE users SET lastname = $1 \n\t\t\tWHERE user_id = $2", [lastname, user_id])];
+            case 1:
+                _a.sent();
+                res.json({ message: "Lastname has been changed" });
+                return [3 /*break*/, 3];
+            case 2:
+                error_3 = _a.sent();
+                console.log("UPDATE lastname", error_3.message);
+                res.status(500).json({ message: "Oops! Something went wrong!" });
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
 router.put("/email", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var new_email, user_id, existing, error_3;
+    var new_email, user_id, existing, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -158,8 +200,8 @@ router.put("/email", auth_middlware_1.verifyAuth, function (req, res) { return _
                 res.json({ message: "Email has been changed" });
                 return [3 /*break*/, 4];
             case 3:
-                error_3 = _a.sent();
-                console.log("UPDATE EMAIl", error_3.message);
+                error_4 = _a.sent();
+                console.log("UPDATE EMAIl", error_4.message);
                 res.status(500).json({ message: "Oops! Something went wrong!" });
                 return [3 /*break*/, 4];
             case 4: return [2 /*return*/];
@@ -167,7 +209,7 @@ router.put("/email", auth_middlware_1.verifyAuth, function (req, res) { return _
     });
 }); });
 router.put("/about", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user_id, new_about, error_4;
+    var user_id, new_about, error_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -183,8 +225,8 @@ router.put("/about", auth_middlware_1.verifyAuth, function (req, res) { return _
                 res.json({ message: "Your about is updated" });
                 return [3 /*break*/, 3];
             case 2:
-                error_4 = _a.sent();
-                console.log("UPDATE ABOUT", error_4.message);
+                error_5 = _a.sent();
+                console.log("UPDATE ABOUT", error_5.message);
                 res.status(500).json({ message: "Oops! Something went wrong!" });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];

@@ -53,26 +53,66 @@ router.post("/avatar", verifyAuth, async (req, res) => {
 })
 export default router
 
-router.put("/username", verifyAuth, async (req: Request, res: Response) => {
+// router.put("/username", verifyAuth, async (req: Request, res: Response) => {
+// 	try {
+// 		const { new_username } = req.body
+// 		const { user_id } = res.locals.user
+// 		if (!new_username?.trim().length) {
+// 			return res.status(400).json({ message: "Username cannot be blank" })
+// 		}
+// 		const { rows: existing } = await pool.query(
+// 			`
+// 			SELECT user_id FROM users
+// 			WHERE username = $1 LIMIT 1`,
+// 			[new_username]
+// 		)
+// 		if (existing.length) {
+// 			return res.status(400).json({ message: "Username is not available" })
+// 		}
+// 		await pool.query(`UPDATE users SET username = $1 WHERE user_id = $2`, [new_username, user_id])
+// 		res.json({ message: "Username has been changed" })
+// 	} catch (error) {
+// 		console.log("UPDATE USERNAME", error.message)
+// 		res.status(500).json({ message: "Oops! Something went wrong!" })
+// 	}
+// })
+
+router.put("/firstname", verifyAuth, async (req: Request, res: Response) => {
 	try {
-		const { new_username } = req.body
 		const { user_id } = res.locals.user
-		if (!new_username?.trim().length) {
-			return res.status(400).json({ message: "Username cannot be blank" })
+		const { firstname } = req.body
+		if (!firstname?.trim().length) {
+			return res.json({ message: "Firstname cannot be blank" })
 		}
-		const { rows: existing } = await pool.query(
+		await pool.query(
 			`
-			SELECT user_id FROM users 
-			WHERE username = $1 LIMIT 1`,
-			[new_username]
+			UPDATE users SET firstname = $1 
+			WHERE user_id = $2`,
+			[firstname, user_id]
 		)
-		if (existing.length) {
-			return res.status(400).json({ message: "Username is not available" })
-		}
-		await pool.query(`UPDATE users SET username = $1 WHERE user_id = $2`, [new_username, user_id])
-		res.json({ message: "Username has been changed" })
+		res.json({ message: "Firstname has been changed" })
 	} catch (error) {
-		console.log("UPDATE USERNAME", error.message)
+		console.log("UPDATE FIRSTNAME", error.message)
+		res.status(500).json({ message: "Oops! Something went wrong!" })
+	}
+})
+
+router.put("/lastname", verifyAuth, async (req: Request, res: Response) => {
+	try {
+		const { user_id } = res.locals.user
+		const { lastname } = req.body
+		if (!lastname?.trim().length) {
+			return res.json({ message: "Lastname cannot be blank" })
+		}
+		await pool.query(
+			`
+			UPDATE users SET lastname = $1 
+			WHERE user_id = $2`,
+			[lastname, user_id]
+		)
+		res.json({ message: "Lastname has been changed" })
+	} catch (error) {
+		console.log("UPDATE lastname", error.message)
 		res.status(500).json({ message: "Oops! Something went wrong!" })
 	}
 })
