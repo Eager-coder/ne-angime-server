@@ -97,6 +97,8 @@ router.post("/register", async (req: Request, res: Response) => {
 					lastname,
 					email,
 					user_id: user.user_id,
+					is_private: false,
+					about: null,
 					access_token,
 					refresh_token,
 				},
@@ -117,7 +119,16 @@ router.post("/login", async (req, res) => {
 
 		if (!rows.length) return res.status(400).json({ message: "User does not exist" })
 
-		const { password: hashedPassword, user_id, email, firstname, lastname, avatar, about } = rows[0]
+		const {
+			password: hashedPassword,
+			user_id,
+			email,
+			firstname,
+			lastname,
+			avatar,
+			about,
+			is_private,
+		} = rows[0]
 
 		if (!bcrypt.compareSync(password, hashedPassword))
 			return res.status(400).json({ message: "Password is incorrect" })
@@ -138,6 +149,7 @@ router.post("/login", async (req, res) => {
 				email,
 				avatar,
 				user_id,
+				is_private,
 				access_token,
 				refresh_token,
 				about,
