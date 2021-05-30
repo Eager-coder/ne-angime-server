@@ -53,30 +53,6 @@ router.post("/avatar", verifyAuth, async (req, res) => {
 })
 export default router
 
-// router.put("/username", verifyAuth, async (req: Request, res: Response) => {
-// 	try {
-// 		const { new_username } = req.body
-// 		const { user_id } = res.locals.user
-// 		if (!new_username?.trim().length) {
-// 			return res.status(400).json({ message: "Username cannot be blank" })
-// 		}
-// 		const { rows: existing } = await pool.query(
-// 			`
-// 			SELECT user_id FROM users
-// 			WHERE username = $1 LIMIT 1`,
-// 			[new_username]
-// 		)
-// 		if (existing.length) {
-// 			return res.status(400).json({ message: "Username is not available" })
-// 		}
-// 		await pool.query(`UPDATE users SET username = $1 WHERE user_id = $2`, [new_username, user_id])
-// 		res.json({ message: "Username has been changed" })
-// 	} catch (error) {
-// 		console.log("UPDATE USERNAME", error.message)
-// 		res.status(500).json({ message: "Oops! Something went wrong!" })
-// 	}
-// })
-
 router.put("/firstname", verifyAuth, async (req: Request, res: Response) => {
 	try {
 		const { user_id } = res.locals.user
@@ -150,6 +126,36 @@ router.put("/about", verifyAuth, async (req: Request, res: Response) => {
 		res.json({ message: "Your about is updated" })
 	} catch (error) {
 		console.log("UPDATE ABOUT", error.message)
+		res.status(500).json({ message: "Oops! Something went wrong!" })
+	}
+})
+
+router.put("/private/:status", verifyAuth, async (req: Request, res: Response) => {
+	try {
+		const { user_id } = res.locals.user
+		const { status } = req.params
+
+		if (status === "enable") {
+			await pool.query(
+				`
+				UPDATE users SET is_private = TRUE 
+				WHERE user_id = $1`,
+				[user_id]
+			)
+			res.json({ message: "Private mode is enabled" })
+		} else if (status === "disable") {
+			await pool.query(
+				`
+				UPDATE users SET is_private = FALSE 
+				WHERE user_id = $1`,
+				[user_id]
+			)
+			res.json({ message: "Private mode is disabled" })
+		} else {
+			res.status(400).json({ message: "Unknown status code" })
+		}
+	} catch (error) {
+		console.log("PRIVATE MODE", error.message)
 		res.status(500).json({ message: "Oops! Something went wrong!" })
 	}
 })

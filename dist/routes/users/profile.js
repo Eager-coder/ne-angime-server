@@ -104,29 +104,6 @@ router.post("/avatar", auth_middlware_1.verifyAuth, function (req, res) { return
     });
 }); });
 exports.default = router;
-// router.put("/username", verifyAuth, async (req: Request, res: Response) => {
-// 	try {
-// 		const { new_username } = req.body
-// 		const { user_id } = res.locals.user
-// 		if (!new_username?.trim().length) {
-// 			return res.status(400).json({ message: "Username cannot be blank" })
-// 		}
-// 		const { rows: existing } = await pool.query(
-// 			`
-// 			SELECT user_id FROM users
-// 			WHERE username = $1 LIMIT 1`,
-// 			[new_username]
-// 		)
-// 		if (existing.length) {
-// 			return res.status(400).json({ message: "Username is not available" })
-// 		}
-// 		await pool.query(`UPDATE users SET username = $1 WHERE user_id = $2`, [new_username, user_id])
-// 		res.json({ message: "Username has been changed" })
-// 	} catch (error) {
-// 		console.log("UPDATE USERNAME", error.message)
-// 		res.status(500).json({ message: "Oops! Something went wrong!" })
-// 	}
-// })
 router.put("/firstname", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var user_id, firstname, error_2;
     return __generator(this, function (_a) {
@@ -230,6 +207,40 @@ router.put("/about", auth_middlware_1.verifyAuth, function (req, res) { return _
                 res.status(500).json({ message: "Oops! Something went wrong!" });
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
+        }
+    });
+}); });
+router.put("/private/:status", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var user_id, status_1, error_6;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 6, , 7]);
+                user_id = res.locals.user.user_id;
+                status_1 = req.params.status;
+                if (!(status_1 === "enable")) return [3 /*break*/, 2];
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\t\tUPDATE users SET is_private = TRUE \n\t\t\t\tWHERE user_id = $1", [user_id])];
+            case 1:
+                _a.sent();
+                res.json({ message: "Private mode is enabled" });
+                return [3 /*break*/, 5];
+            case 2:
+                if (!(status_1 === "disable")) return [3 /*break*/, 4];
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\t\tUPDATE users SET is_private = FALSE \n\t\t\t\tWHERE user_id = $1", [user_id])];
+            case 3:
+                _a.sent();
+                res.json({ message: "Private mode is disabled" });
+                return [3 /*break*/, 5];
+            case 4:
+                res.status(400).json({ message: "Unknown status code" });
+                _a.label = 5;
+            case 5: return [3 /*break*/, 7];
+            case 6:
+                error_6 = _a.sent();
+                console.log("PRIVATE MODE", error_6.message);
+                res.status(500).json({ message: "Oops! Something went wrong!" });
+                return [3 /*break*/, 7];
+            case 7: return [2 /*return*/];
         }
     });
 }); });
