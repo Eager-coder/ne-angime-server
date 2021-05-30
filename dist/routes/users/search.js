@@ -60,7 +60,7 @@ router.get("/all", auth_middlware_1.verifyAuth, function (req, res) { return __a
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT username, firstname, lastname, avatar \n\t\t\tFROM users WHERE NOT username = $1 AND is_private = FALSE", [username])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT username, firstname, lastname, avatar \n\t\t\tFROM users WHERE NOT username = $1", [username])];
             case 2:
                 users = (_a.sent()).rows;
                 res.json({ data: users });
@@ -84,13 +84,13 @@ router.get("/user/:username", auth_middlware_1.verifyAuth, function (req, res) {
                 _a.label = 1;
             case 1:
                 _a.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT user_id, username, firstname, lastname, avatar, about, is_private\n\t\t\tFROM users WHERE username = $1 ", [username])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT \n\t\t\t\tuser_id, username, firstname, lastname, avatar, about, is_private\n\t\t\tFROM users WHERE username = $1 ", [username])];
             case 2:
                 user = (_a.sent()).rows;
                 if (!user.length) {
                     return [2 /*return*/, res.status(404).json({ message: "No user found" })];
                 }
-                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT * FROM friends \n\t\t\t\tWHERE (requester_id = $1 AND addressee_id = $2)\n\t\t\t\tOR (requester_id = $2 AND addressee_id = $1)\n\n\t\t", [user_id, user[0].user_id])];
+                return [4 /*yield*/, db_1.pool.query("\n\t\t\tSELECT * FROM friends \n\t\t\tWHERE (requester_id = $1 AND addressee_id = $2)\n\t\t\tOR (requester_id = $2 AND addressee_id = $1)\n\n\t\t", [user_id, user[0].user_id])];
             case 3:
                 existingLink = (_a.sent()).rows;
                 status_1 = "no_relation";
@@ -105,10 +105,9 @@ router.get("/user/:username", auth_middlware_1.verifyAuth, function (req, res) {
                         status_1 = "incoming_request";
                     }
                 }
-                if (status_1 === "no_relation" && user[0].is_private) {
-                    return [2 /*return*/, res.status(404).json({ message: "No user found" })];
+                if (status_1 !== "friend" && user[0].is_private) {
+                    delete user[0].about;
                 }
-                delete user[0].is_private;
                 res.json({ data: __assign(__assign({}, user[0]), { status: status_1 }) });
                 return [3 /*break*/, 5];
             case 4:

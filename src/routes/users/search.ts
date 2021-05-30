@@ -6,12 +6,13 @@ import { pool } from "../../config/db"
 router.get("/all", verifyAuth, async (req, res) => {
 	const { username } = res.locals.user
 	try {
-		const { rows: users } = await pool.query(
+		let { rows: users } = await pool.query(
 			`
 			SELECT username, firstname, lastname, avatar 
-			FROM users WHERE NOT username = $1 AND is_private = FALSE`,
+			FROM users WHERE NOT username = $1`,
 			[username]
 		)
+
 		res.json({ data: users })
 	} catch (error) {
 		console.log("USERS", error)
@@ -24,7 +25,8 @@ router.get("/user/:username", verifyAuth, async (req, res) => {
 	try {
 		const { rows: user } = await pool.query(
 			`
-			SELECT user_id, username, firstname, lastname, avatar, about, is_private
+			SELECT 
+				user_id, username, firstname, lastname, avatar, about, is_private
 			FROM users WHERE username = $1 `,
 			[username]
 		)
@@ -35,8 +37,8 @@ router.get("/user/:username", verifyAuth, async (req, res) => {
 		const { rows: existingLink } = await pool.query(
 			`
 			SELECT * FROM friends 
-				WHERE (requester_id = $1 AND addressee_id = $2)
-				OR (requester_id = $2 AND addressee_id = $1)
+			WHERE (requester_id = $1 AND addressee_id = $2)
+			OR (requester_id = $2 AND addressee_id = $1)
 
 		`,
 			[user_id, user[0].user_id]
@@ -52,10 +54,10 @@ router.get("/user/:username", verifyAuth, async (req, res) => {
 				status = "incoming_request"
 			}
 		}
-		if (status === "no_relation" && user[0].is_private) {
-			return res.status(404).json({ message: "No user found" })
+		if (status !== "friend" && user[0].is_private) {
+			delete user[0].about
 		}
-		delete user[0].is_private
+
 		res.json({ data: { ...user[0], status } })
 	} catch (error) {
 		console.log("USER", error)
