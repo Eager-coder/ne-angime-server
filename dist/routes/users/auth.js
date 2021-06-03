@@ -246,29 +246,42 @@ router.post("/refresh_token", function (req, res) { return __awaiter(void 0, voi
         }
     });
 }); });
-router.put("/change_password", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var password, user_id, hashedPassword, error_6;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+router.put("/update/password", auth_middlware_1.verifyAuth, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, old_password, new_password1, new_password2, user_id, user, isMatch, newHashedPassword, error_6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
-                password = req.body.password || "";
+                _b.trys.push([0, 3, , 4]);
+                _a = req.body, old_password = _a.old_password, new_password1 = _a.new_password1, new_password2 = _a.new_password2;
                 user_id = res.locals.user.user_id;
-                if ((password === null || password === void 0 ? void 0 : password.trim().length) < 8) {
+                if ((new_password1 === null || new_password1 === void 0 ? void 0 : new_password1.trim().length) < 8) {
                     return [2 /*return*/, res.status(400).json({ message: "Password needs to be at least 8 characters long" })];
                 }
-                hashedPassword = bcryptjs_1.default.hashSync(password, 12);
-                return [4 /*yield*/, db_1.pool.query("UPDATE users SET passwor = $1 WHERE user_id = $2", [hashedPassword, user_id])];
+                if (new_password1 !== new_password2) {
+                    return [2 /*return*/, res.status(400).json({ message: "Passwords must match" })];
+                }
+                return [4 /*yield*/, db_1.pool.query("SELECT password FROM users WHERE user_id = $1", [user_id])];
             case 1:
-                _a.sent();
-                res.json({ message: "Password has been changed" });
-                return [3 /*break*/, 3];
+                user = (_b.sent()).rows[0];
+                console.log(user.password);
+                isMatch = bcryptjs_1.default.compareSync(old_password, user.password);
+                if (!isMatch)
+                    return [2 /*return*/, res.status(400).json({ message: "Password is incorrect" })];
+                newHashedPassword = bcryptjs_1.default.hashSync(new_password1, 12);
+                return [4 /*yield*/, db_1.pool.query("UPDATE users SET password = $1 WHERE user_id = $2", [
+                        newHashedPassword,
+                        user_id,
+                    ])];
             case 2:
-                error_6 = _a.sent();
+                _b.sent();
+                res.json({ message: "Password has been changed" });
+                return [3 /*break*/, 4];
+            case 3:
+                error_6 = _b.sent();
                 console.log("UPDATE PASSWORD", error_6.message);
                 res.status(500).json({ message: "Oops! Something went wrong" });
-                return [3 /*break*/, 3];
-            case 3: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });

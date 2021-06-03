@@ -219,16 +219,29 @@ router.post("/refresh_token", async (req: Request, res: Response) => {
 	}
 })
 
-router.put("/change_password", verifyAuth, async (req: Request, res: Response) => {
+router.put("/update/password", verifyAuth, async (req: Request, res: Response) => {
 	try {
-		const password: string = req.body.password || ""
+		const { old_password, new_password1, new_password2 } = req.body
+
 		const { user_id } = res.locals.user
-		if (password?.trim().length < 8) {
+		if (new_password1?.trim().length < 8) {
 			return res.status(400).json({ message: "Password needs to be at least 8 characters long" })
 		}
-		const hashedPassword = bcrypt.hashSync(password, 12)
+		if (new_password1 !== new_password2) {
+			return res.status(400).json({ message: "Passwords must match" })
+		}
+		const {
+			rows: [user],
+		} = await pool.query(`SELECT password FROM users WHERE user_id = $1`, [user_id])
+		console.log(user.password)
+		const isMatch = bcrypt.compareSync(old_password, user.password)
+		if (!isMatch) return res.status(400).json({ message: "Password is incorrect" })
 
-		await pool.query(`UPDATE users SET passwor = $1 WHERE user_id = $2`, [hashedPassword, user_id])
+		const newHashedPassword = bcrypt.hashSync(new_password1, 12)
+		await pool.query(`UPDATE users SET password = $1 WHERE user_id = $2`, [
+			newHashedPassword,
+			user_id,
+		])
 		res.json({ message: "Password has been changed" })
 	} catch (error) {
 		console.log("UPDATE PASSWORD", error.message)
