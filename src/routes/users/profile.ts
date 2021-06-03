@@ -58,7 +58,7 @@ router.put("/firstname", verifyAuth, async (req: Request, res: Response) => {
 		const { user_id } = res.locals.user
 		const { firstname } = req.body
 		if (!firstname?.trim().length) {
-			return res.json({ message: "Firstname cannot be blank" })
+			return res.status(400).json({ message: "Firstname cannot be blank" })
 		}
 		await pool.query(
 			`
@@ -78,7 +78,7 @@ router.put("/lastname", verifyAuth, async (req: Request, res: Response) => {
 		const { user_id } = res.locals.user
 		const { lastname } = req.body
 		if (!lastname?.trim().length) {
-			return res.json({ message: "Lastname cannot be blank" })
+			return res.status(400).json({ message: "Lastname cannot be blank" })
 		}
 		await pool.query(
 			`

@@ -113,7 +113,7 @@ router.put("/firstname", auth_middlware_1.verifyAuth, function (req, res) { retu
                 user_id = res.locals.user.user_id;
                 firstname = req.body.firstname;
                 if (!(firstname === null || firstname === void 0 ? void 0 : firstname.trim().length)) {
-                    return [2 /*return*/, res.json({ message: "Firstname cannot be blank" })];
+                    return [2 /*return*/, res.status(400).json({ message: "Firstname cannot be blank" })];
                 }
                 return [4 /*yield*/, db_1.pool.query("\n\t\t\tUPDATE users SET firstname = $1 \n\t\t\tWHERE user_id = $2", [firstname, user_id])];
             case 1:
@@ -138,7 +138,7 @@ router.put("/lastname", auth_middlware_1.verifyAuth, function (req, res) { retur
                 user_id = res.locals.user.user_id;
                 lastname = req.body.lastname;
                 if (!(lastname === null || lastname === void 0 ? void 0 : lastname.trim().length)) {
-                    return [2 /*return*/, res.json({ message: "Lastname cannot be blank" })];
+                    return [2 /*return*/, res.status(400).json({ message: "Lastname cannot be blank" })];
                 }
                 return [4 /*yield*/, db_1.pool.query("\n\t\t\tUPDATE users SET lastname = $1 \n\t\t\tWHERE user_id = $2", [lastname, user_id])];
             case 1:
